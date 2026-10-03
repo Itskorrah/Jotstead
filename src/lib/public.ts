@@ -1,0 +1,4 @@
+import {type Doc,type Page} from './model';
+export function attachmentReferenced(page:Page,id:string){const url=`/api/uploads/${id}`;const scan=(n:Doc):boolean=>n.attrs?.src===url||(n.marks||[]).some(m=>m.type==='link'&&m.attrs?.href===url)||(n.content||[]).some(scan);return page.cover===url||scan(page.content);}
+export function sanitizePublicContent(n:Doc):Doc {if(n.type==='pageLink')return {type:'paragraph',content:[{type:'text',text:String(n.attrs?.title||'Linked page')}]};const out=structuredClone(n);if(out.marks)out.marks=out.marks.filter(m=>m.type!=='link'||!String(m.attrs?.href).startsWith('/?page='));if(out.content)out.content=out.content.map(sanitizePublicContent);return out;}
+export function publishedPage(page:Page){return {id:page.id,title:page.title,icon:page.icon,cover:page.cover,content:sanitizePublicContent(page.content),font:page.font,fullWidth:page.fullWidth,smallText:page.smallText};}

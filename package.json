@@ -1,0 +1,50 @@
+{
+  "name": "jotstead",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "backup": "tsx scripts/backup.ts",
+    "check": "pnpm test && pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "@phosphor-icons/react": "2.1.10",
+    "zod": "^4.3.6",
+    "@tiptap/react": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/core": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "@tiptap/extension-placeholder": "3.31.4",
+    "@tiptap/extension-task-list": "3.31.4",
+    "@tiptap/extension-task-item": "3.31.4",
+    "@tiptap/extension-image": "3.31.4",
+    "@tiptap/extension-table": "3.31.4",
+    "@tiptap/extension-details": "3.31.4",
+    "@tiptap/extension-text-style": "3.31.4",
+    "@tiptap/extension-highlight": "3.31.4",
+    "@tiptap/extension-unique-id": "3.31.4",
+    "@tiptap/markdown": "3.31.4",
+    "jsep": "^1.4.0",
+    "idb-keyval": "^6.2.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "vitest": "^4.0.0",
+    "tsx": "^4.21.0",
+    "sharp": "^0.34.5"
+  }
+}

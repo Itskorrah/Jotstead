@@ -17,9 +17,9 @@ pnpm dev
 
 Open **http://127.0.0.1:3000**. The development server binds only to loopback. The first run creates a sample workspace; after that all changes persist in `data/workspace.sqlite`. Uploads are in `data/uploads`. Neither data nor secrets are committed to Git.
 
-For the production PWA on this computer, run `pnpm build` then **`pnpm preview`**. Open **http://127.0.0.1:3000** and choose **Continue with ChatGPT**. No separate Jotstead signup is needed. First verified sign-in backs up the workspace before binding it to your account. See [ChatGPT setup and plugin guide](docs/CHATGPT.md).
+For the production PWA on this computer, run `pnpm build` then **`pnpm preview`**. Open **http://127.0.0.1:3000** to enter your workspace directly. ChatGPT connection is optional in **Settings → ChatGPT & integrations**. First verified connection backs up the workspace before binding it to your account. See [ChatGPT setup and plugin guide](docs/CHATGPT.md).
 
-ChatGPT sign-in is the default in development and production. Existing password deployments remain supported until an owner is bound; afterward only the bound ChatGPT identity or an explicitly configured personal API token can authorize private access. `pnpm demo` explicitly enables an anonymous loopback demo only before account binding; never use that mode for remote hosting.
+`pnpm dev`, `pnpm start` and `pnpm preview` default to direct workspace access on this computer, binding only to loopback. This remains available after connecting ChatGPT. Use `pnpm preview --protected` or `JOTSTEAD_LOCAL_ONLY=0` to require authentication locally. Password-protected launches, remote bind addresses and remote public URLs always require authentication. Direct container/server launches remain protected. Local access trusts users and processes on this computer; never expose it through a tunnel.
 
 ## What works
 

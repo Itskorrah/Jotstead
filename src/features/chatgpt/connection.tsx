@@ -24,6 +24,25 @@ export async function connectChatGPT(sharing = false) {
   if (!r.ok) throw new Error(body.error);
   location.assign(body.url);
 }
+function SignInHelp() {
+  return (
+    <details className="login-password">
+      <summary>ChatGPT says “This app is unavailable”?</summary>
+      <p className="muted">
+        That message concerns Jotstead’s app registration. Return here if OpenAI
+        shows it; your notes are preserved. Local registration availability is
+        controlled by OpenAI.
+      </p>
+      <a
+        href="https://github.com/Itskorrah/Jotstead/blob/main/docs/CHATGPT.md#sign-in-troubleshooting"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Sign-in troubleshooting ↗
+      </a>
+    </details>
+  );
+}
 export function ChatGPTLogin({
   onLogin,
   draftExport,
@@ -138,6 +157,7 @@ export function ChatGPTLogin({
             {error}
           </p>
         )}
+        <SignInHelp />
         {draftExport && (
           <div className="login-recovery">
             <button className="subtle" onClick={draftExport}>
@@ -236,6 +256,7 @@ export function ChatGPTConnection({ pages }: { pages: Page[] }) {
       >
         Manage ChatGPT usage and connections ↗
       </a>
+      <SignInHelp />
       {status?.connected && (
         <button
           className="subtle"

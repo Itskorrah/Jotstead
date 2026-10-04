@@ -21,3 +21,7 @@ A skill package was not added for every noun. Skills improve execution; implemen
 The fresh release reviewer identified recoverable-draft collisions, history/schema restoration, duplicate references, table attribute bounds and import/export limits. Those findings were fixed with regression coverage. Browser testing additionally exposed slash-menu render churn and a development hot-reload error-identity issue; both were corrected.
 
 No skill or install count certifies pixel-perfect fidelity or full Notion parity. Actual coverage and evidence are recorded in [FEATURES.md](docs/FEATURES.md), [VALIDATION.md](docs/VALIDATION.md) and [design-qa.md](docs/design-qa.md).
+
+## ChatGPT integration release
+
+The approved one-pass brief was recorded with `brainstorming`, `writing-plans` and `executing-plans`. Repeated approval prompts were superseded by the user's explicit autonomous execution instruction. Missing sibling bookkeeping scripts were replaced with a manual evidence ledger. OpenAI Docs provided the current dynamic OAuth and plan-inference protocol; API-key provisioning was inapplicable because the selected flow uses subscription OAuth. The `plugin-creator:create-plugin` skill supplied local packaging, MCP Apps and installation guidance; the existing local workspace makes its local-plugin path appropriate. Tests and final independent review follow the TDD/verification/review guidance from the planning skills. React components reuse the established workspace styling and canonical data model rather than introducing another UI framework.

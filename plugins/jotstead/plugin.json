@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "jotstead",
+  "version": "1.1.1",
+  "description": "Use selected Jotstead pages, save decisions and keep a shared project brief beside your conversation.",
+  "author": { "name": "Itskorrah" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Jotstead",
+        "shortDescription": "Your project companion",
+        "longDescription": "Search selected local pages, save reviewed conversation outputs, maintain shared project briefs and create next actions with revision protection.",
+        "developerName": "Itskorrah",
+        "category": "Productivity",
+        "capabilities": ["Interactive"],
+        "logo": "./assets/icon.png",
+        "composerIcon": "./assets/icon.png",
+        "defaultPrompt": "Help me with my selected Jotstead project and save the decisions we agree on."
+      }
+    }
+  }
+}

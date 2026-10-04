@@ -112,6 +112,70 @@ try {
     400,
   );
   const form = new FormData();
+  const captureId = randomUUID(),
+    beforeCapture = snapshot.revision;
+  const captureBody = {
+    mode: "append",
+    pageId: "notes",
+    markdown: "Selected ChatGPT decision",
+    sourceChatUrl: "https://chatgpt.com/c/test-source",
+    expectedRevision: beforeCapture,
+    mutationId: captureId,
+  };
+  assert.equal(
+    (await request("/api/capture", "POST", captureBody)).status,
+    200,
+  );
+  assert.equal(
+    (await request("/api/capture", "POST", captureBody)).status,
+    200,
+    "a retry must be idempotent",
+  );
+  assert.equal(
+    (
+      await request("/api/capture", "POST", {
+        ...captureBody,
+        mutationId: randomUUID(),
+      })
+    ).status,
+    409,
+    "stale capture must not overwrite another save",
+  );
+  assert.equal(
+    (
+      await request(
+        "/api/capture",
+        "POST",
+        captureBody,
+        true,
+        "https://other.example",
+      )
+    ).status,
+    403,
+  );
+  snapshot = await (await request("/api/workspace")).json();
+  assert.equal(snapshot.revision, beforeCapture + 1);
+  const noteText = JSON.stringify(
+    snapshot.data.pages.find((p: { id: string }) => p.id === "notes").content,
+  );
+  assert.equal(noteText.split("Selected ChatGPT decision").length - 1, 1);
+  assert(noteText.includes("https://chatgpt.com/c/test-source"));
+  const state = await (await request("/api/chatgpt")).json();
+  assert.equal(state.authenticated, true);
+  assert(!JSON.stringify(state).includes("refreshToken"));
+  assert.equal(
+    (await request("/api/chatgpt/start", "POST", { sharing: true }, false))
+      .status,
+    401,
+  );
+  assert.equal(
+    (
+      await request(
+        "/auth/callback?state=forged&code=forged&client_id=oaiapp_forged",
+      )
+    ).status,
+    400,
+  );
   form.set(
     "file",
     new Blob([await readFile("public/icons/icon-192.png")]),

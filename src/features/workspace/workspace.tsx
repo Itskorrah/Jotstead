@@ -33,6 +33,13 @@ import {
 import { useWorkspace } from "./use-workspace";
 import { Sidebar } from "./sidebar";
 import { Settings, ImportDialog } from "./settings";
+import { ChatGPTLogin } from "@/features/chatgpt/connection";
+import { AIAssistant } from "@/features/chatgpt/assistant";
+import {
+  SharedBriefEditor,
+  SaveSelection,
+} from "@/features/chatgpt/shared-workflow";
+import { saveSelection, type CaptureInput } from "@/lib/shared-context";
 import { Database } from "@/features/databases/database";
 import { PropertyCell } from "@/features/databases/property-cell";
 import { runRules } from "@/features/databases/query";
@@ -89,17 +96,8 @@ export function WorkspaceApp() {
     [history, setHistory] = useState<
       { id: number; createdAt: string; page: Page }[]
     >([]),
-    [comment, setComment] = useState(""),
-    [password, setPassword] = useState(""),
-    [loginError, setLoginError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [comment, setComment] = useState("");
   const [install, setInstall] = useState<InstallEvent | null>(null);
-  const [aiMode, setAiMode] = useState("ask"),
-    [aiPrompt, setAiPrompt] = useState(""),
-    [aiResponse, setAiResponse] = useState(""),
-    [aiSources, setAiSources] = useState<{ id: string; title: string }[]>([]),
-    [aiAvailable, setAiAvailable] = useState(false),
-    [aiBusy, setAiBusy] = useState(false);
   const editorRef = useRef<Editor | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const historyNav = useRef<string[]>(["home"]),
@@ -231,11 +229,6 @@ export function WorkspaceApp() {
           if (Array.isArray(h)) setHistory(h);
         })
         .catch(() => notify("Could not load history"));
-    if (modal === "ai")
-      fetch("/api/ai")
-        .then((r) => r.json())
-        .then((b) => setAiAvailable(!!b.available))
-        .catch(() => {});
   }, [modal, page?.id, notify]);
   const updatePage = useCallback(
     (fn: (p: Page) => void) => {
@@ -331,67 +324,18 @@ export function WorkspaceApp() {
   };
   if (store.authRequired)
     return (
-      <div className="login">
-        <img src="/icons/icon-192.png" alt="Jotstead" width={64} height={64} />
-        <h1>A home for your ideas.</h1>
-        <p>Sign in to your Jotstead workspace.</p>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            try {
-              const r = await fetch("/api/auth", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password }),
-              });
-              const b = await r.json();
-              if (!r.ok) throw new Error(b.error);
-              setPassword("");
-              setLoginError("");
-              await store.load();
-            } catch (e) {
-              setLoginError(
-                e instanceof Error ? e.message : "Could not sign in",
-              );
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <Field label="Workspace password">
-            <input
-              type="password"
-              autoComplete="current-password"
-              required
-              autoFocus
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </Field>
-          {loginError && (
-            <p className="error-text" role="alert">
-              {loginError}
-            </p>
-          )}
-          <button className="primary" disabled={busy}>
-            {busy ? "Signing in…" : "Continue"}
-          </button>
-        </form>
-        {workspace && (
-          <button
-            className="subtle"
-            onClick={() =>
-              download(
-                "jotstead-unsaved-draft.json",
-                workspaceExport(workspace),
-              )
-            }
-          >
-            Export your unsaved draft
-          </button>
-        )}
-      </div>
+      <ChatGPTLogin
+        onLogin={store.load}
+        draftExport={
+          workspace
+            ? () =>
+                download(
+                  "jotstead-unsaved-draft.json",
+                  workspaceExport(workspace),
+                )
+            : undefined
+        }
+      />
     );
   if (!workspace)
     return (
@@ -410,6 +354,14 @@ export function WorkspaceApp() {
         )}
       </div>
     );
+  const capture = (input: CaptureInput) => {
+    let capturedId = "";
+    update((w) => {
+      capturedId = saveSelection(w, input).id;
+    });
+    if (capturedId) open(capturedId);
+    notify("Selection added. Jotstead will save it with your workspace.");
+  };
   const renderPage = (p: Page, peek = false) => (
     <>
       <div
@@ -435,6 +387,8 @@ export function WorkspaceApp() {
             <ImageIcon size={15} />
             {p.cover ? "Change cover" : "Add cover"}
           </button>
+          <button onClick={() => show("brief")}>Shared project brief</button>
+          <button onClick={() => show("capture")}>Save from ChatGPT</button>
           <button onClick={() => show("comments")}>
             <ChatCircleIcon size={15} />
             Add comment
@@ -460,6 +414,33 @@ export function WorkspaceApp() {
             }
           }}
         />
+        {p.sharedBrief && (
+          <details className="shared-brief-preview">
+            <summary>Shared project brief</summary>
+            {Object.entries(p.sharedBrief)
+              .filter(([key]) => key !== "sourceChatUrl")
+              .map(([key, value]) => (
+                <div key={key}>
+                  <strong>
+                    {
+                      (
+                        {
+                          goals: "Goals",
+                          preferences: "Preferences",
+                          decisions: "Decisions",
+                          nextActions: "Next actions",
+                        } as Record<string, string>
+                      )[key]
+                    }
+                  </strong>
+                  <p>{value || "Not set"}</p>
+                </div>
+              ))}
+            <button className="subtle" onClick={() => show("brief")}>
+              Edit brief
+            </button>
+          </details>
+        )}
         {parent?.kind === "database" && p.parentId === parent.id && (
           <div className="row-properties">
             {parent.properties.map((prop) => (
@@ -887,6 +868,31 @@ export function WorkspaceApp() {
               <div className="menu-label">
                 Edited {new Date(menuPage.updatedAt).toLocaleDateString()}
               </div>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("ai");
+                }}
+              >
+                <SparkleIcon size={17} />
+                Ask AI about this page
+              </button>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("brief");
+                }}
+              >
+                Shared project brief
+              </button>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("capture");
+                }}
+              >
+                Save from ChatGPT
+              </button>
             </Menu>
           </div>,
           document.querySelector("dialog[open]") || document.body,
@@ -939,8 +945,9 @@ export function WorkspaceApp() {
           </div>
         </Modal>
       )}
-      {modal === "settings" && (
+      {(modal === "settings" || modal === "connections") && (
         <Settings
+          initialTab={modal === "connections" ? "ai" : "workspace"}
           workspace={workspace}
           update={update}
           onClose={() => show(null)}
@@ -1583,114 +1590,33 @@ export function WorkspaceApp() {
         </Modal>
       )}
       {modal === "ai" && (
-        <Modal title="Ask Jotstead AI" onClose={() => show(null)}>
-          {!aiAvailable ? (
-            <>
-              <div className="connection-status">No provider connected</div>
-              <p>
-                Connect your own AI provider or local Ollama server in the
-                server configuration. Your notes remain fully usable without AI.
-              </p>
-              <button className="subtle" onClick={() => show("settings")}>
-                Open settings
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="muted">
-                For workspace questions, relevant page text is sent to your
-                configured provider. Writing actions send the current page.
-              </p>
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  setAiBusy(true);
-                  setAiResponse("");
-                  try {
-                    const r = await fetch("/api/ai", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        prompt: aiPrompt,
-                        pageId: page?.id,
-                        mode: aiMode,
-                      }),
-                    });
-                    const b = await r.json();
-                    if (!r.ok) throw new Error(b.error);
-                    setAiResponse(b.text);
-                    setAiSources(b.sources || []);
-                  } catch (e) {
-                    notify(e instanceof Error ? e.message : "AI failed");
-                  } finally {
-                    setAiBusy(false);
-                  }
-                }}
-              >
-                <Field label="Action">
-                  <select
-                    value={aiMode}
-                    onChange={(e) => setAiMode(e.target.value)}
-                  >
-                    <option value="ask">Ask about my workspace</option>
-                    <option value="rewrite">Rewrite this page</option>
-                    <option value="summarize">Summarize this page</option>
-                    <option value="translate">Translate this page</option>
-                    <option value="tasks">Extract next steps</option>
-                  </select>
-                </Field>
-                <textarea
-                  autoFocus
-                  required
-                  aria-label="Ask AI"
-                  rows={3}
-                  placeholder="What would you like help with?"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                />
-                <button
-                  className="primary"
-                  disabled={aiBusy || !aiPrompt.trim()}
-                >
-                  {aiBusy ? "Thinking…" : "Ask AI"}
-                </button>
-              </form>
-              {aiResponse && (
-                <>
-                  <div className="ai-response">{aiResponse}</div>
-                  <div className="ai-sources">
-                    {aiSources.map((s) => (
-                      <button
-                        className="subtle"
-                        key={s.id}
-                        onClick={() => open(s.id)}
-                      >
-                        <LinkIcon size={14} />
-                        {s.title}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    className="subtle"
-                    onClick={() => {
-                      editorRef.current
-                        ?.chain()
-                        .focus("end")
-                        .insertContent({
-                          type: "paragraph",
-                          content: [{ type: "text", text: aiResponse }],
-                        })
-                        .run();
-                      show(null);
-                    }}
-                  >
-                    Append response to this page
-                  </button>
-                </>
-              )}
-            </>
-          )}
-        </Modal>
+        <AIAssistant
+          pages={workspace.pages}
+          pageId={page?.id}
+          onSave={capture}
+          onClose={() => show(null)}
+          onSettings={() => show("connections")}
+        />
+      )}
+      {modal === "capture" && (
+        <SaveSelection
+          pages={workspace.pages}
+          pageId={page?.id}
+          onSave={capture}
+          onClose={() => show(null)}
+        />
+      )}
+      {modal === "brief" && page && (
+        <SharedBriefEditor
+          key={page.id}
+          page={page}
+          onSave={(brief) =>
+            updatePage((p) => {
+              p.sharedBrief = brief;
+            })
+          }
+          onClose={() => show(null)}
+        />
       )}
       {modal === "install" && (
         <Modal title="Install Jotstead" onClose={() => show(null)}>

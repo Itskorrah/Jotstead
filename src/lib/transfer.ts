@@ -171,7 +171,11 @@ export function importCsv(value: string, title: string): Page[] {
     }),
   ];
 }
-export function importMarkdown(value: string, title: string): Page {
+export function importMarkdown(
+  value: string,
+  title: string,
+  options: { extractTitle?: boolean } = {},
+): Page {
   const page = newPage(title);
   const content: Doc[] = [];
   const lines = value.replace(/\r\n/g, "\n").split("\n");
@@ -203,7 +207,12 @@ export function importMarkdown(value: string, title: string): Page {
     }
     const heading = line.match(/^(#{1,3}) (.*)/);
     if (heading) {
-      if (!usedTitle && content.length === 0 && heading[1] === "#") {
+      if (
+        options.extractTitle !== false &&
+        !usedTitle &&
+        content.length === 0 &&
+        heading[1] === "#"
+      ) {
         page.title = heading[2];
         usedTitle = true;
         continue;

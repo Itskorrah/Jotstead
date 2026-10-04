@@ -1,6 +1,6 @@
 {
   "name": "jotstead",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "private": true,
   "engines": {
     "node": ">=24.0.0"
@@ -11,15 +11,19 @@
     "build": "next build",
     "start": "node scripts/start.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "pnpm plugin:build && vitest run",
     "backup": "tsx scripts/backup.ts",
     "check": "pnpm test && pnpm typecheck && pnpm build && pnpm verify:http",
     "format": "prettier --write src tests scripts public/sw.js next.config.ts vitest.config.ts tsconfig.json package.json",
     "mcp": "tsx scripts/mcp.ts",
     "verify:http": "tsx scripts/verify-http.ts",
-    "preview": "node scripts/start.mjs --local"
+    "preview": "node scripts/start.mjs",
+    "plugin:build": "node scripts/build-plugin.mjs",
+    "plugin:install": "pnpm plugin:build && node scripts/install-plugin.mjs",
+    "demo": "node scripts/start.mjs --local"
   },
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^2.0.3",
     "@modelcontextprotocol/sdk": "1.32.0",
     "@phosphor-icons/react": "2.1.10",
     "@tiptap/core": "3.31.4",
@@ -37,6 +41,7 @@
     "@tiptap/react": "3.31.4",
     "@tiptap/starter-kit": "3.31.4",
     "idb-keyval": "^6.2.2",
+    "jose": "^6.2.12",
     "jsep": "^1.4.0",
     "next": "16.3.8",
     "react": "19.3.0",
@@ -49,6 +54,7 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "esbuild": "^0.28.2",
     "happy-dom": "^20.14.5",
     "prettier": "3.9.9",
     "tsx": "^4.21.0",

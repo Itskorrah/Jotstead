@@ -3,9 +3,16 @@ import {
   passwordMatches,
   isSameOrigin,
   readJson,
+  cookieValue,
 } from "@/lib/auth";
+import { getVault } from "@/lib/chatgpt-vault";
 import { getStore } from "@/lib/store";
 export async function POST(req: Request) {
+  if (getVault().owner())
+    return Response.json(
+      { error: "Continue with ChatGPT to open this workspace." },
+      { status: 403 },
+    );
   if (!isSameOrigin(req))
     return Response.json(
       { error: "Same-origin request required" },
@@ -45,14 +52,15 @@ export async function DELETE(req: Request) {
       { error: "Same-origin request required" },
       { status: 403 },
     );
-  return Response.json(
-    { ok: true },
-    {
-      headers: {
-        "Set-Cookie":
-          "jotstead_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
-        "Clear-Site-Data": '"cache", "storage"',
-      },
-    },
+  getVault().revokeSession(cookieValue(req, "jotstead_session"));
+  const headers = new Headers({ "Clear-Site-Data": '"cache", "storage"' });
+  headers.append(
+    "Set-Cookie",
+    "jotstead_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
   );
+  headers.append(
+    "Set-Cookie",
+    "jotstead_oauth=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+  );
+  return Response.json({ ok: true }, { headers });
 }

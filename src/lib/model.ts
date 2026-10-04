@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { briefSchema } from "./shared-brief";
 
 export const MAX_WORKSPACE_BYTES = 5 * 1024 * 1024;
 export const idSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/);
@@ -81,6 +82,7 @@ const viewSchema = z.object({
 });
 export type View = z.infer<typeof viewSchema>;
 const pageSchema = z.object({
+  sharedBrief: briefSchema.optional(),
   id: idSchema,
   parentId: idSchema.nullable(),
   title: z.string().max(500),
@@ -416,6 +418,7 @@ function validateDoc(input: unknown, depth = 0): Doc {
           if (
             ![
               "href",
+              "title",
               "target",
               "rel",
               "class",
@@ -427,6 +430,12 @@ function validateDoc(input: unknown, depth = 0): Doc {
             ].includes(k)
           )
             throw new Error("Unsupported mark attribute");
+          if (
+            k === "title" &&
+            v !== null &&
+            (typeof v !== "string" || v.length > 500)
+          )
+            throw new Error("Invalid link title");
           if (
             ["color", "backgroundColor"].includes(k) &&
             v &&

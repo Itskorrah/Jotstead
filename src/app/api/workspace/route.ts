@@ -1,4 +1,36 @@
-import {guard,readJson} from '@/lib/auth';import {getStore,ConflictError} from '@/lib/store';import {z} from 'zod';
-export const runtime='nodejs';export const dynamic='force-dynamic';
-export async function GET(req:Request){const denied=guard(req);if(denied)return denied;return Response.json(getStore().read(),{headers:{'Cache-Control':'no-store'}});}
-export async function PUT(req:Request){const denied=guard(req,true);if(denied)return denied;try{const payload=z.object({data:z.unknown(),baseRevision:z.number().int().nonnegative(),mutationId:z.string().min(1).max(100)}).parse(await readJson(req));const result=getStore().save(payload.data as never,payload.baseRevision,payload.mutationId);return Response.json(result,{headers:{'Cache-Control':'no-store'}});}catch(e){return Response.json({error:e instanceof Error?e.message:'Invalid workspace'},{status:e instanceof ConflictError?409:400});}}
+import { guard, readJson } from "@/lib/auth";
+import { getStore, isConflictError } from "@/lib/store";
+import { z } from "zod";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export async function GET(req: Request) {
+  const denied = guard(req);
+  if (denied) return denied;
+  return Response.json(getStore().read(), {
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+export async function PUT(req: Request) {
+  const denied = guard(req, true);
+  if (denied) return denied;
+  try {
+    const payload = z
+      .object({
+        data: z.unknown(),
+        baseRevision: z.number().int().nonnegative(),
+        mutationId: z.string().min(1).max(100),
+      })
+      .parse(await readJson(req));
+    const result = getStore().save(
+      payload.data as never,
+      payload.baseRevision,
+      payload.mutationId,
+    );
+    return Response.json(result, { headers: { "Cache-Control": "no-store" } });
+  } catch (e) {
+    return Response.json(
+      { error: e instanceof Error ? e.message : "Invalid workspace" },
+      { status: isConflictError(e) ? 409 : 400 },
+    );
+  }
+}

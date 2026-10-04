@@ -1,4 +1,6 @@
-# Jotstead: build proposal
+# Archived Jotstead build proposal
+
+> This is the pre-implementation planning snapshot. Its future-tense statements describe the original proposal, not the current repository. The implemented architecture and verified release are documented in [README.md](README.md), [docs/SPEC.md](docs/SPEC.md) and [docs/VALIDATION.md](docs/VALIDATION.md). SQLite and an installable PWA were selected for this release.
 
 Prepared 3 October 2026. Working name; naming availability is unconfirmed.
 

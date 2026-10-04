@@ -1,6 +1,122 @@
-import {Node,mergeAttributes} from '@tiptap/core';
-export const Callout=Node.create({name:'callout',group:'block',content:'block+',defining:true,addAttributes(){return {color:{default:'gray'}};},parseHTML(){return [{tag:'aside[data-callout]'}];},renderHTML({HTMLAttributes}){return ['aside',mergeAttributes(HTMLAttributes,{'data-callout':'true',class:'callout'}),0];}});
-export const Columns=Node.create({name:'columns',group:'block',content:'column{2,3}',defining:true,parseHTML(){return [{tag:'div[data-columns]'}];},renderHTML({HTMLAttributes}){return ['div',mergeAttributes(HTMLAttributes,{'data-columns':'true',class:'editor-columns'}),0];}});
-export const Column=Node.create({name:'column',content:'block+',isolating:true,parseHTML(){return [{tag:'div[data-column]'}];},renderHTML({HTMLAttributes}){return ['div',mergeAttributes(HTMLAttributes,{'data-column':'true'}),0];}});
-export const FileNode=Node.create({name:'file',group:'block',atom:true,draggable:true,addAttributes(){return {src:{default:''},name:{default:'Attachment'},size:{default:0}};},parseHTML(){return [{tag:'div[data-file]'}];},renderHTML({node,HTMLAttributes}){return ['div',mergeAttributes(HTMLAttributes,{'data-file':'true',class:'file-block'}),['a',{href:node.attrs.src,download:node.attrs.name,target:'_blank',rel:'noopener noreferrer'},`↳ ${node.attrs.name}`],['span',{},`${Math.round(node.attrs.size/1024)} KB`]];}});
-export const PageLink=Node.create({name:'pageLink',group:'block',atom:true,addAttributes(){return {pageId:{default:''},title:{default:'Untitled'},icon:{default:''}};},parseHTML(){return [{tag:'div[data-page-link]'}];},renderHTML({node,HTMLAttributes}){return ['div',mergeAttributes(HTMLAttributes,{'data-page-link':'true',class:'page-link'}),['a',{href:`/?page=${node.attrs.pageId}`},`${node.attrs.icon?node.attrs.icon+' ':''}${node.attrs.title}`]];}});
+import { Node, mergeAttributes } from "@tiptap/core";
+export const Callout = Node.create({
+  name: "callout",
+  group: "block",
+  content: "block+",
+  defining: true,
+  addAttributes() {
+    return { color: { default: "gray" } };
+  },
+  parseHTML() {
+    return [{ tag: "aside[data-callout]" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "aside",
+      mergeAttributes(HTMLAttributes, {
+        "data-callout": "true",
+        class: "callout",
+      }),
+      0,
+    ];
+  },
+});
+export const Columns = Node.create({
+  name: "columns",
+  group: "block",
+  content: "column{2,3}",
+  defining: true,
+  parseHTML() {
+    return [{ tag: "div[data-columns]" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-columns": "true",
+        class: "editor-columns",
+      }),
+      0,
+    ];
+  },
+});
+export const Column = Node.create({
+  name: "column",
+  content: "block+",
+  isolating: true,
+  parseHTML() {
+    return [{ tag: "div[data-column]" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-column": "true" }),
+      0,
+    ];
+  },
+});
+export const FileNode = Node.create({
+  name: "file",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      src: { default: "" },
+      name: { default: "Attachment" },
+      size: { default: 0 },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div[data-file]" }];
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-file": "true",
+        class: "file-block",
+      }),
+      [
+        "a",
+        {
+          href: node.attrs.src,
+          download: node.attrs.name,
+          target: "_blank",
+          rel: "noopener noreferrer",
+        },
+        `↳ ${node.attrs.name}`,
+      ],
+      ["span", {}, `${Math.round(node.attrs.size / 1024)} KB`],
+    ];
+  },
+});
+export const PageLink = Node.create({
+  name: "pageLink",
+  group: "block",
+  atom: true,
+  addAttributes() {
+    return {
+      pageId: { default: "" },
+      title: { default: "Untitled" },
+      icon: { default: "" },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div[data-page-link]" }];
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-page-link": "true",
+        class: "page-link",
+      }),
+      [
+        "a",
+        { href: `/?page=${node.attrs.pageId}` },
+        `${node.attrs.icon ? node.attrs.icon + " " : ""}${node.attrs.title}`,
+      ],
+    ];
+  },
+});

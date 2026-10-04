@@ -1,3 +1,5 @@
 allowBuilds:
   esbuild: true
   sharp: true
+minimumReleaseAgeExclude:
+  - '@modelcontextprotocol/sdk@1.32.0'

@@ -1,2 +1,74 @@
-import {getStore,ConflictError} from '@/lib/store';import {isSameOrigin,readJson} from '@/lib/auth';import {idSchema,newPage,validateWorkspace} from '@/lib/model';import {runRules} from '@/features/databases/query';import {z} from 'zod';
-export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;if(!idSchema.safeParse(id).success||!isSameOrigin(req))return Response.json({error:'Form unavailable'},{status:403});try{const payload=z.object({name:z.string().min(1).max(500),values:z.record(z.string(),z.union([z.string().max(10000),z.number().finite(),z.boolean(),z.array(z.string().max(10000)).max(100),z.null()]))}).parse(await readJson(req,65536));const store=getStore();if(!store.throttle('form:'+id))return Response.json({error:'This form has reached its submission rate limit. Try again in 15 minutes.'},{status:429});for(let attempt=0;attempt<3;attempt++){const s=store.read();const db=s.data.pages.find(p=>p.id===id&&p.kind==='database'&&p.formEnabled&&!p.deletedAt);if(!db)return Response.json({error:'Form unavailable'},{status:404});const allowed=db.properties.filter(p=>!['relation','formula','rollup'].includes(p.type));if(Object.keys(payload.values).some(key=>!allowed.some(p=>p.id===key)))throw new Error('Unsupported form property');const row=newPage(payload.name,id);row.values=payload.values;for(const key of Object.keys(row.values))runRules(s.data,row,key);s.data.pages.push(row);validateWorkspace(s.data);try{store.save(s.data,s.revision,row.id);return Response.json({ok:true});}catch(e){if(!(e instanceof ConflictError)||attempt===2)throw e;}}return Response.json({error:'Please retry'},{status:409});}catch(e){return Response.json({error:e instanceof Error?e.message:'Invalid response'},{status:400});}}
+import { getStore, isConflictError } from "@/lib/store";
+import { isSameOrigin, readJson } from "@/lib/auth";
+import { idSchema, newPage, validateWorkspace } from "@/lib/model";
+import { runRules } from "@/features/databases/query";
+import { z } from "zod";
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  if (!idSchema.safeParse(id).success || !isSameOrigin(req))
+    return Response.json({ error: "Form unavailable" }, { status: 403 });
+  try {
+    const payload = z
+      .object({
+        name: z.string().min(1).max(500),
+        values: z.record(
+          z.string(),
+          z.union([
+            z.string().max(10000),
+            z.number().finite(),
+            z.boolean(),
+            z.array(z.string().max(10000)).max(100),
+            z.null(),
+          ]),
+        ),
+      })
+      .parse(await readJson(req, 65536));
+    const store = getStore();
+    if (!store.throttle("form:" + id))
+      return Response.json(
+        {
+          error:
+            "This form has reached its submission rate limit. Try again in 15 minutes.",
+        },
+        { status: 429 },
+      );
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const s = store.read();
+      const db = s.data.pages.find(
+        (p) =>
+          p.id === id && p.kind === "database" && p.formEnabled && !p.deletedAt,
+      );
+      if (!db)
+        return Response.json({ error: "Form unavailable" }, { status: 404 });
+      const allowed = db.properties.filter(
+        (p) => !["relation", "formula", "rollup"].includes(p.type),
+      );
+      if (
+        Object.keys(payload.values).some(
+          (key) => !allowed.some((p) => p.id === key),
+        )
+      )
+        throw new Error("Unsupported form property");
+      const row = newPage(payload.name, id);
+      row.values = payload.values;
+      for (const key of Object.keys(row.values)) runRules(s.data, row, key);
+      s.data.pages.push(row);
+      validateWorkspace(s.data);
+      try {
+        store.save(s.data, s.revision, row.id);
+        return Response.json({ ok: true });
+      } catch (e) {
+        if (!isConflictError(e) || attempt === 2) throw e;
+      }
+    }
+    return Response.json({ error: "Please retry" }, { status: 409 });
+  } catch (e) {
+    return Response.json(
+      { error: e instanceof Error ? e.message : "Invalid response" },
+      { status: 400 },
+    );
+  }
+}

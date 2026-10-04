@@ -1,3 +1,155 @@
-'use client';
-import {useState} from 'react';import {type Property,type Value} from '@/lib/model';import {Field} from './ui';
-export function PublicForm({id,title,icon,properties}:{id:string;title:string;icon:string;properties:Property[]}){const [name,setName]=useState(''),[values,setValues]=useState<Record<string,Value>>({}),[busy,setBusy]=useState(false),[done,setDone]=useState(false),[error,setError]=useState('');return <><header className="public-header"><a href="/"><img src="/icons/favicon-32.png" width={23} height={23} alt=""/>Jotstead</a><small>Submission form</small></header><main className="form-page">{icon&&<div className="page-emoji" style={{fontSize:48}}>{icon}</div>}<h1>{title}</h1>{done?<><h3>Thanks — your response is saved.</h3><button className="subtle" onClick={()=>{setDone(false);setName('');setValues({});}}>Submit another response</button></>:<><p>Add a response. It will be saved privately to this database.</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try{const r=await fetch('/api/form/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,values})});const b=await r.json();if(!r.ok)throw new Error(b.error);setDone(true);}catch(e){setError(e instanceof Error?e.message:'Could not submit');}finally{setBusy(false);}}}><Field label="Name"><input required maxLength={500} value={name} onChange={e=>setName(e.target.value)}/></Field>{properties.map(p=><Field key={p.id} label={p.name}>{p.type==='checkbox'?<input type="checkbox" checked={values[p.id]===true} onChange={e=>setValues(v=>({...v,[p.id]:e.target.checked}))}/>:p.type==='select'?<select value={String(values[p.id]||'')} onChange={e=>setValues(v=>({...v,[p.id]:e.target.value}))}><option value="">Choose an option</option>{p.options?.map(o=><option key={o}>{o}</option>)}</select>:<input type={p.type==='number'?'number':p.type==='date'?'date':p.type==='url'?'url':'text'} value={Array.isArray(values[p.id])?(values[p.id]as string[]).join(', '):String(values[p.id]??'')} onChange={e=>setValues(v=>({...v,[p.id]:p.type==='number'?(e.target.value===''?null:Number(e.target.value)):p.type==='multiSelect'?e.target.value.split(',').map(s=>s.trim()).filter(Boolean):e.target.value}))}/>}</Field>)}{error&&<p role="alert" className="error-text">{error}</p>}<button className="primary" disabled={busy}>{busy?'Submitting…':'Submit'}</button></form></>}</main></>;}
+"use client";
+import { useState } from "react";
+import { type Property, type Value } from "@/lib/model";
+import { Field } from "./ui";
+export function PublicForm({
+  id,
+  title,
+  icon,
+  properties,
+}: {
+  id: string;
+  title: string;
+  icon: string;
+  properties: Property[];
+}) {
+  const [name, setName] = useState(""),
+    [values, setValues] = useState<Record<string, Value>>({}),
+    [busy, setBusy] = useState(false),
+    [done, setDone] = useState(false),
+    [error, setError] = useState("");
+  return (
+    <>
+      <header className="public-header">
+        <a href="/">
+          <img src="/icons/favicon-32.png" width={23} height={23} alt="" />
+          Jotstead
+        </a>
+        <small>Submission form</small>
+      </header>
+      <main className="form-page">
+        {icon && (
+          <div className="page-emoji" style={{ fontSize: 48 }}>
+            {icon}
+          </div>
+        )}
+        <h1>{title}</h1>
+        {done ? (
+          <>
+            <h3>Thanks — your response is saved.</h3>
+            <button
+              className="subtle"
+              onClick={() => {
+                setDone(false);
+                setName("");
+                setValues({});
+              }}
+            >
+              Submit another response
+            </button>
+          </>
+        ) : (
+          <>
+            <p>Add a response. It will be saved privately to this database.</p>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                setError("");
+                try {
+                  const r = await fetch("/api/form/" + id, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, values }),
+                  });
+                  const b = await r.json();
+                  if (!r.ok) throw new Error(b.error);
+                  setDone(true);
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "Could not submit");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              <Field label="Name">
+                <input
+                  required
+                  maxLength={500}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </Field>
+              {properties.map((p) => (
+                <Field key={p.id} label={p.name}>
+                  {p.type === "checkbox" ? (
+                    <input
+                      type="checkbox"
+                      checked={values[p.id] === true}
+                      onChange={(e) =>
+                        setValues((v) => ({ ...v, [p.id]: e.target.checked }))
+                      }
+                    />
+                  ) : p.type === "select" ? (
+                    <select
+                      value={String(values[p.id] || "")}
+                      onChange={(e) =>
+                        setValues((v) => ({ ...v, [p.id]: e.target.value }))
+                      }
+                    >
+                      <option value="">Choose an option</option>
+                      {p.options?.map((o) => (
+                        <option key={o}>{o}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type={
+                        p.type === "number"
+                          ? "number"
+                          : p.type === "date"
+                            ? "date"
+                            : p.type === "url"
+                              ? "url"
+                              : "text"
+                      }
+                      value={
+                        Array.isArray(values[p.id])
+                          ? (values[p.id] as string[]).join(", ")
+                          : String(values[p.id] ?? "")
+                      }
+                      onChange={(e) =>
+                        setValues((v) => ({
+                          ...v,
+                          [p.id]:
+                            p.type === "number"
+                              ? e.target.value === ""
+                                ? null
+                                : Number(e.target.value)
+                              : p.type === "multiSelect"
+                                ? e.target.value
+                                    .split(",")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean)
+                                : e.target.value,
+                        }))
+                      }
+                    />
+                  )}
+                </Field>
+              ))}
+              {error && (
+                <p role="alert" className="error-text">
+                  {error}
+                </p>
+              )}
+              <button className="primary" disabled={busy}>
+                {busy ? "Submitting…" : "Submit"}
+              </button>
+            </form>
+          </>
+        )}
+      </main>
+    </>
+  );
+}

@@ -10,4 +10,4 @@ Persistence: versioned validated workspace JSON persisted transactionally to SQL
 
 Safety limits: 5 MiB state, 20 MiB attachment, 2,000 pages, 100 properties per database, document depth 32. Limits protect resources, no paid unlock. Published page only that page's text and allowed attachment links; no private workspace payload. No unrestricted embeds or unsafe URL protocols. Upload files served as downloads except safe raster images. Formula parser never executes JavaScript.
 
-Visual baseline: white/light gray, system sans fonts, sidebar 240 px, toolbar 45 px, document content 708 px, title 40 px. Public Notion references determine details; light, dark, narrow screen and interaction captures assessed separately. Standard icons from Phosphor; emoji page icons are editable user content like the reference.
+Visual baseline: white/light gray, system sans fonts, sidebar 240 px, toolbar 45 px, document content 696 px, title 40 px. Public Notion references determine details; light, dark, narrow screen and interaction captures assessed separately. Standard icons from Phosphor; emoji page icons are editable user content like the reference.

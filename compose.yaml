@@ -1,0 +1,17 @@
+services:
+  jotstead:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      JOTSTEAD_PASSWORD: ${JOTSTEAD_PASSWORD:?Set a workspace password in .env}
+      JOTSTEAD_PUBLIC_URL: ${JOTSTEAD_PUBLIC_URL:-http://localhost:3000}
+      JOTSTEAD_COOKIE_SECURE: ${JOTSTEAD_COOKIE_SECURE:-0}
+      JOTSTEAD_AI_URL: ${JOTSTEAD_AI_URL:-}
+      JOTSTEAD_AI_MODEL: ${JOTSTEAD_AI_MODEL:-llama3.2}
+      JOTSTEAD_AI_KEY: ${JOTSTEAD_AI_KEY:-}
+    volumes:
+      - jotstead-data:/app/data
+volumes:
+  jotstead-data:

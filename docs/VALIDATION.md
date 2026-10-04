@@ -1,0 +1,51 @@
+# Validation evidence — 4 October 2026
+
+Validated on macOS with Node 24.19.0, pnpm 11.19.0, Next.js 16.3.8 and the Codex in-app browser. Tests use isolated temporary storage; the visible preview uses the ignored `data/` directory. No real user workspace or provider account was imported.
+
+## Automated checks
+
+- `pnpm test`: **37 passing tests in 10 files**. Coverage includes tree cycles and moves, persisted SQLite restart, stale-write rejection/retry, auth/session/origin boundaries, numeric/date queries, formula safety/rollups, typed rule execution, transfer roundtrips and large valid exports, public projection/upload bounds, independent backup restore, subtree reference duplication and history schema preservation.
+- Autosave hook tests verify corrected edits after rejected requests, edits during an in-flight save, conflict recovery when its first fetch fails, separate offline tabs, and atomic recovery archiving that preserves a newer edit in another tab.
+- A real stdio MCP client launches the server, lists eight tools, searches, creates/reads a persisted document, queries a database, rejects a stale mutation and moves a page to recoverable trash.
+- `pnpm typecheck`: passed.
+- `pnpm build`: passed; standalone output contains the web page, manifest, authenticated API and isolated public page/form routes.
+- `pnpm verify:http`: passed against an actual built production process on an ephemeral loopback port, with disposable password and storage. Checks anonymous denial, wrong/correct password, cookie attributes, CSRF rejection, valid save, HTTP 409 for stale revision, invalid state rejection, raster upload detection, private attachment denial, publish/read/unpublish, public form submission, history, disconnected AI status, manifest and sign-out.
+- `pnpm audit --audit-level=high`: no known vulnerabilities found. An initial sharp dependency finding was addressed by using the patched production dependency.
+- The GitHub Actions template in `docs/ci/github-actions.yml` repeats tests, typecheck, build, production HTTP checks and audit on push/PR once enabled. GitHub rejected the initial push because the connected credential lacks `workflow` permission. To deliver the app without expanding account access, the template is supplied outside the active workflows directory. All checks above ran locally; no remote CI run is claimed.
+
+## Real browser workflows
+
+| Workflow | Observed result |
+| --- | --- |
+| Create a page, type a title/body, use `/todo`, check the task, reload | Title, document and checkbox survived reload; save status reached Saved |
+| Add a child through keyboard-accessible tree actions | Nested page, breadcrumb and parent navigation appeared correctly |
+| Editor image upload through the file chooser | Original test icon appeared using a stored `/api/uploads/<id>` URL and persisted |
+| Move a block up; invoke editor undo | List group moved before the heading, then returned to its original order |
+| Edit database title/status/number and a row document | Table/board/row page reflected the same changed row; saved in server storage |
+| Table, board, gallery, list, calendar, timeline and chart | All rendered the shared fixture; Done count changed to three; calendar/timeline showed dated rows |
+| Filter status to Done; sort Effort numerically | Filter showed only the three matching rows; sort put smaller numbers first |
+| Row page actions/font menu | Menu stayed usable inside the modal; serif setting applied |
+| Comments and version restore | Comment appeared; prior document restored; current version remained in server history |
+| Malformed JSON import | Validation rejected the content before any replacement; workspace remained available |
+| Publish a synthetic local page and inspect reader route | Only selected title/document appeared; sidebar, nested page, comments and workspace settings were absent; then unpublished |
+| Submit a synthetic public form | Confirmation reported saved; owner recovered the newer server version and saw the additional private row |
+| Stale owner save after form submission | Conflict controls preserved the local draft and let the owner keep the newer server response |
+| Production server interruption | After confirming server unavailable, a new title could be edited and kept locally |
+| Reopen while server unavailable | Service worker served shell; IndexedDB restored the title/body/task and displayed Offline with export/retry controls |
+| Restart and reload | Automatic retry saved the offline change; another reload showed Saved and the same title |
+| Trash and restore | Synthetic fixture disappeared into Trash and returned through Restore; child recovery is covered by the tree tests |
+| Device draft review | Recovery list opened; recovered copy and server choice worked; resolved banner cleared on reload |
+| Light/dark, desktop and 390 px viewport | Legible layouts, mobile navigation overlay, scoped horizontal database scrolling; document width equaled viewport width without outer overflow |
+| Install information | Manifest/icons present; supported-browser and Safari instructions visible in Settings |
+
+Browser testing found and fixed a slash-menu state-update loop, modal menus behind the dialog layer, and development hot-reload conflict-class identity. Each observed error was corrected and the affected workflow rechecked. The final production tab had no error/warning entries before delivery. Expected failed fetches during the deliberate offline test are not normal-operation errors.
+
+## Visual evidence
+
+See [design-qa.md](design-qa.md) and `docs/screenshots/`. The editor reference comparison uses matching synthetic content at a 960 × 600 logical viewport. Desktop captures use 1440 × 900; mobile captures use 390 × 844. Public Notion help assets are the reference baseline, not access to a private current Notion account.
+
+## Practical boundaries
+
+The website and installable PWA share one implementation. Actual desktop installation, physical iPhone/Android installation, virtual keyboards, native signing/app store delivery, Docker execution, real AI generation and remote HTTPS hosting were not exercised on this machine. They are not claimed as tested. No separate native binaries, domain, remote server or paid provider was provisioned. JSON/Markdown/CSV export content is covered automatically; the browser download-event wait was unavailable in this in-app browser, so an actual browser-saved export file is not claimed as inspected.
+
+The production HTTP suite tests API publication/privacy on an isolated password-protected server; the visible browser preview binds only to loopback and deliberately uses local-only mode. See README before exposing the app remotely.

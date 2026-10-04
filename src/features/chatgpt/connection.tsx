@@ -42,90 +42,104 @@ export function ChatGPTLogin({
       .catch(() => setError("Could not check sign-in. Refresh to retry."));
   }, []);
   return (
-    <div className="login">
-      <img src="/icons/icon-192.png" alt="Jotstead" width={64} height={64} />
-      <h1>A home for your ideas.</h1>
-      <p>Sign in with ChatGPT to open your personal workspace.</p>
-      <button
-        className="chatgpt-button"
-        disabled={busy || !!status?.legacyPassword}
-        onClick={async () => {
-          setError("");
-          setBusy(true);
-          try {
-            await connectChatGPT();
-          } catch (e) {
-            setError((e as Error).message);
-            setBusy(false);
-          }
-        }}
-      >
-        {busy ? "Opening ChatGPT…" : "Continue with ChatGPT"}
-      </button>
-      <p className="muted login-detail">
-        Your notes stay in Jotstead. AI usage is an optional permission you can
-        enable after signing in.
-      </p>
-      {!status?.ownerBound && (
-        <p className="muted login-detail">
-          First sign-in connects this workspace to your verified account and
-          creates a backup of your notes.
-        </p>
-      )}
-      {status?.legacyPassword && (
-        <p className="muted login-detail">
-          Open this workspace with its existing password first, then connect
-          ChatGPT in Settings.
-        </p>
-      )}
-      {status?.legacyPassword && (
-        <details open>
-          <summary>Existing workspace password</summary>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setBusy(true);
-              try {
-                const r = await fetch("/api/auth", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ password }),
-                });
-                const b = await r.json();
-                if (!r.ok) throw new Error(b.error);
-                await onLogin();
-              } catch (e) {
-                setError((e as Error).message);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <input
-              aria-label="Workspace password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button className="primary" disabled={busy}>
-              Continue
-            </button>
-          </form>
-        </details>
-      )}
-      {error && (
-        <p role="alert" className="error-text">
-          {error}
-        </p>
-      )}
-      {draftExport && (
-        <button className="subtle" onClick={draftExport}>
-          Export your unsaved draft
+    <main className="login" aria-labelledby="login-heading">
+      <div className="login-content">
+        <header className="login-heading">
+          <div className="login-brand">
+            <img src="/icons/icon-192.png" alt="" width={40} height={40} />
+            <span>Jotstead</span>
+          </div>
+          <h1 id="login-heading">A home for your ideas.</h1>
+          <p className="login-subtitle">
+            Sign in with ChatGPT to open your personal workspace.
+          </p>
+        </header>
+        <button
+          className="chatgpt-button"
+          disabled={busy || !!status?.legacyPassword}
+          onClick={async () => {
+            setError("");
+            setBusy(true);
+            try {
+              await connectChatGPT();
+            } catch (e) {
+              setError((e as Error).message);
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? "Opening ChatGPT…" : "Continue with ChatGPT"}
         </button>
-      )}
-    </div>
+        <div className="login-notes">
+          <p>
+            Your notes stay in Jotstead. AI is optional and can be enabled in
+            Settings.
+          </p>
+          {!status?.ownerBound && (
+            <p>
+              Your first sign-in links this workspace to your verified account
+              and backs up your notes.
+            </p>
+          )}
+        </div>
+        {status?.legacyPassword && (
+          <p className="muted login-detail">
+            Open this workspace with its existing password first, then connect
+            ChatGPT in Settings.
+          </p>
+        )}
+        {status?.legacyPassword && (
+          <details className="login-password" open>
+            <summary>Existing workspace password</summary>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                try {
+                  const r = await fetch("/api/auth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password }),
+                  });
+                  const b = await r.json();
+                  if (!r.ok) throw new Error(b.error);
+                  await onLogin();
+                } catch (e) {
+                  setError((e as Error).message);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              <input
+                aria-label="Workspace password"
+                type="password"
+                name="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button className="primary" disabled={busy}>
+                Continue
+              </button>
+            </form>
+          </details>
+        )}
+        {error && (
+          <p role="alert" className="error-text">
+            {error}
+          </p>
+        )}
+        {draftExport && (
+          <div className="login-recovery">
+            <button className="subtle" onClick={draftExport}>
+              Export your unsaved draft
+            </button>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
 export function ChatGPTConnection({ pages }: { pages: Page[] }) {

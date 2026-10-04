@@ -87,12 +87,23 @@ export function Database({ page, workspace, update, onOpen }: Props) {
     [filters, setFilters] = useState(false),
     [sort, setSort] = useState(false),
     [viewMenu, setViewMenu] = useState(false),
+    [moreViews, setMoreViews] = useState(false),
+    [columns, setColumns] = useState(false),
     [newView, setNewView] = useState(false),
     [property, setProperty] = useState<Property | null>(null),
     [settings, setSettings] = useState(false);
   const [month, setMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
+  const visibleProperties = page.properties.filter(
+    (p) => !view.hiddenProperties?.includes(p.id),
+  );
+  const primaryViews = ["table", "board", "calendar"]
+    .map((type) => page.views.find((v) => v.type === type))
+    .filter((v): v is View => !!v);
+  const shownViews = primaryViews.some((v) => v.id === view.id)
+    ? primaryViews
+    : [...primaryViews.slice(0, 2), view];
   const rows = useMemo(
     () => queryRows(workspace, page, view, search),
     [workspace, page, view, search],
@@ -169,7 +180,11 @@ export function Database({ page, workspace, update, onOpen }: Props) {
       </div>
       <div className="card-properties">
         {page.properties
-          .filter((p) => ["select", "date", "multiSelect"].includes(p.type))
+          .filter(
+            (p) =>
+              ["select", "date", "multiSelect"].includes(p.type) &&
+              (view.type !== "board" || p.id !== groupProp?.id),
+          )
           .slice(0, 3)
           .map((p) => {
             const v = propertyValue(workspace, page, row, p.id);
@@ -203,7 +218,7 @@ export function Database({ page, workspace, update, onOpen }: Props) {
     <section className="database" aria-label={`${page.title} database`}>
       <div className="database-toolbar">
         <div className="view-tabs">
-          {page.views.map((v) => {
+          {shownViews.map((v) => {
             const I = icons[v.type];
             return (
               <button
@@ -217,12 +232,51 @@ export function Database({ page, workspace, update, onOpen }: Props) {
               </button>
             );
           })}
-          <IconButton
-            label="Add database view"
-            onClick={() => setNewView(true)}
-          >
-            <PlusIcon size={17} />
-          </IconButton>
+          <div className="relative">
+            <button
+              className="more-views"
+              aria-label="More views"
+              aria-expanded={moreViews}
+              onClick={() => setMoreViews((v) => !v)}
+            >
+              <DotsThreeIcon size={18} />
+              <span>Views</span>
+            </button>
+            {moreViews && (
+              <Menu
+                onClose={() => setMoreViews(false)}
+                className="views-picker"
+              >
+                <div className="menu-label">All views</div>
+                {page.views.map((v) => {
+                  const I = icons[v.type];
+                  return (
+                    <button
+                      key={v.id}
+                      aria-current={v.id === view.id ? "page" : undefined}
+                      onClick={() => {
+                        setViewId(v.id);
+                        setMoreViews(false);
+                      }}
+                    >
+                      <I size={16} />
+                      {v.name}
+                    </button>
+                  );
+                })}
+                <hr />
+                <button
+                  onClick={() => {
+                    setMoreViews(false);
+                    setNewView(true);
+                  }}
+                >
+                  <PlusIcon size={16} />
+                  Add a view
+                </button>
+              </Menu>
+            )}
+          </div>
         </div>
         <div className="database-tools">
           <IconButton
@@ -254,6 +308,40 @@ export function Database({ page, workspace, update, onOpen }: Props) {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          {view.type === "table" && (
+            <div className="relative">
+              <IconButton
+                label="Visible properties"
+                onClick={() => setColumns((v) => !v)}
+              >
+                <ListIcon size={17} />
+              </IconButton>
+              {columns && (
+                <Menu onClose={() => setColumns(false)} className="right">
+                  <div className="menu-label">Table properties</div>
+                  {page.properties.map((p) => (
+                    <label className="column-option" key={p.id}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Show ${p.name}`}
+                        checked={!view.hiddenProperties?.includes(p.id)}
+                        onChange={(e) =>
+                          changeView((v) => {
+                            v.hiddenProperties = e.target.checked
+                              ? (v.hiddenProperties || []).filter(
+                                  (id) => id !== p.id,
+                                )
+                              : [...(v.hiddenProperties || []), p.id];
+                          })
+                        }
+                      />
+                      <span>{p.name}</span>
+                    </label>
+                  ))}
+                </Menu>
+              )}
+            </div>
+          )}
           <IconButton
             label="Database settings"
             onClick={() => setSettings(true)}
@@ -449,7 +537,7 @@ export function Database({ page, workspace, update, onOpen }: Props) {
                   <TextAaIcon size={16} />
                   Name
                 </th>
-                {page.properties.map((p) => {
+                {visibleProperties.map((p) => {
                   const I = propIcon(p.type);
                   return (
                     <th key={p.id}>
@@ -501,7 +589,7 @@ export function Database({ page, workspace, update, onOpen }: Props) {
                       Open
                     </button>
                   </td>
-                  {page.properties.map((p) => (
+                  {visibleProperties.map((p) => (
                     <td key={p.id}>{cell(row, p)}</td>
                   ))}
                   <td>
@@ -569,22 +657,6 @@ export function Database({ page, workspace, update, onOpen }: Props) {
                     ).length
                   }
                 </span>
-                <IconButton
-                  label={`Add page to ${group}`}
-                  onClick={() =>
-                    addRow(
-                      groupProp
-                        ? {
-                            [groupProp.id]:
-                              group === "No status" ? null : group,
-                          }
-                        : {},
-                      true,
-                    )
-                  }
-                >
-                  <PlusIcon size={16} />
-                </IconButton>
               </header>
               {rows
                 .filter(
@@ -607,7 +679,7 @@ export function Database({ page, workspace, update, onOpen }: Props) {
                 }
               >
                 <PlusIcon size={16} />
-                New
+                Add page
               </button>
             </div>
           ))}

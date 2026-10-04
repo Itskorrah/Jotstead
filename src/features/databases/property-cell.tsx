@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
 import {
   type Property,
   type Page,
@@ -59,21 +60,7 @@ export function PropertyCell({
       );
     case "multiSelect":
       return (
-        <input
-          className="cell-input"
-          aria-label={property.name}
-          placeholder="Empty"
-          value={Array.isArray(value) ? value.join(", ") : ""}
-          onChange={(e) =>
-            onChange(
-              e.target.value
-                .split(",")
-                .map((x) => x.trim())
-                .filter(Boolean),
-            )
-          }
-          list={`options-${property.id}`}
-        />
+        <TagEditor property={property} value={value} onChange={onChange} />
       );
     case "relation":
       return (
@@ -109,12 +96,11 @@ export function PropertyCell({
       );
     case "date":
       return (
-        <input
-          className="cell-input date"
-          aria-label={property.name}
-          type="date"
+        <DateEditor
+          name={property.name}
           value={String(value ?? "")}
-          onChange={(e) => onChange(e.target.value)}
+          display={labelOf(value, workspace, "date")}
+          onChange={onChange}
         />
       );
     default:
@@ -129,4 +115,99 @@ export function PropertyCell({
         />
       );
   }
+}
+
+function TagEditor({
+  property,
+  value,
+  onChange,
+}: {
+  property: Property;
+  value: Value;
+  onChange: (v: Value) => void;
+}) {
+  const saved = Array.isArray(value) ? value.join(", ") : "";
+  const [draft, setDraft] = useState(saved);
+  useEffect(() => setDraft(saved), [saved]);
+  const commit = () => {
+    const next = [
+      ...new Set(
+        draft
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+      ),
+    ];
+    setDraft(next.join(", "));
+    if (next.join(", ") !== saved) onChange(next);
+  };
+  return (
+    <input
+      className="cell-input"
+      aria-label={property.name}
+      placeholder="Empty"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          commit();
+          e.currentTarget.blur();
+        }
+        if (e.key === "Escape") {
+          setDraft(saved);
+          e.stopPropagation();
+        }
+      }}
+    />
+  );
+}
+function DateEditor({
+  name,
+  value,
+  display,
+  onChange,
+}: {
+  name: string;
+  value: string;
+  display: string;
+  onChange: (v: Value) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const committed = useRef(value);
+  useEffect(() => {
+    committed.current = value;
+  }, [value]);
+  const commit = (next: string) => {
+    if (committed.current !== next) {
+      committed.current = next;
+      onChange(next);
+    }
+  };
+  return editing ? (
+    <input
+      className="cell-input date"
+      type="date"
+      aria-label={name}
+      autoFocus
+      value={value}
+      onChange={(e) => commit(e.target.value)}
+      onInput={(e) => commit(e.currentTarget.value)}
+      onBlur={(e) => {
+        commit(e.currentTarget.value);
+        setEditing(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" || e.key === "Enter") setEditing(false);
+      }}
+    />
+  ) : (
+    <button
+      className="cell-date"
+      aria-label={name}
+      onClick={() => setEditing(true)}
+    >
+      {display || <span className="muted">Empty</span>}
+    </button>
+  );
 }

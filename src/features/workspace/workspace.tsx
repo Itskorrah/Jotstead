@@ -80,10 +80,12 @@ type InstallEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: string }>;
 };
+import { IconPicker } from "@/components/page-icons";
+import { WorkspaceHome, WORKSPACE_HOME } from "./home";
 export function WorkspaceApp() {
   const store = useWorkspace();
   const { workspace, update, status } = store;
-  const [active, setActive] = useState("home"),
+  const [active, setActive] = useState(WORKSPACE_HOME),
     [sidebar, setSidebar] = useState(true),
     [modal, setModal] = useState<string | null>(null),
     [menu, setMenu] = useState<Page | null>(null),
@@ -100,16 +102,15 @@ export function WorkspaceApp() {
   const [install, setInstall] = useState<InstallEvent | null>(null);
   const editorRef = useRef<Editor | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
-  const historyNav = useRef<string[]>(["home"]),
+  const historyNav = useRef<string[]>([WORKSPACE_HOME]),
     navIndex = useRef(0);
   const [navigation, setNavigation] = useState({ back: false, forward: false });
-  const page =
-    workspace?.pages.find(
-      (p) => p.id === (rowPeek || active) && !p.deletedAt,
-    ) || workspace?.pages.find((p) => !p.deletedAt);
-  const mainPage =
-    workspace?.pages.find((p) => p.id === active && !p.deletedAt) ||
-    workspace?.pages.find((p) => !p.deletedAt);
+  const page = workspace?.pages.find(
+    (p) => p.id === (rowPeek || active) && !p.deletedAt,
+  );
+  const mainPage = workspace?.pages.find(
+    (p) => p.id === active && !p.deletedAt,
+  );
   const menuPage = menu ? workspace?.pages.find((p) => p.id === menu.id) : page;
   const show = useCallback((m: string | null) => {
     setMenu(null);
@@ -121,6 +122,7 @@ export function WorkspaceApp() {
   }, []);
   const open = useCallback((id: string, record = true) => {
     setActive(id);
+    document.querySelector(".page-scroll")?.scrollTo({ top: 0 });
     setRowPeek(null);
     setModal(null);
     setMenu(null);
@@ -166,7 +168,7 @@ export function WorkspaceApp() {
     const id =
       new URLSearchParams(window.location.search).get("page") ||
       localStorage.getItem("jotstead.active") ||
-      "home";
+      WORKSPACE_HOME;
     setActive(id);
     historyNav.current = [id];
     setThemeState(localStorage.getItem("jotstead.theme") || "light");
@@ -325,6 +327,11 @@ export function WorkspaceApp() {
   if (store.authRequired)
     return (
       <ChatGPTLogin
+        notice={
+          workspace
+            ? "Your session ended. Your draft is preserved on this device. Sign in again to save it and return to your page."
+            : undefined
+        }
         onLogin={store.load}
         draftExport={
           workspace
@@ -365,7 +372,7 @@ export function WorkspaceApp() {
   const renderPage = (p: Page, peek = false) => (
     <>
       <div
-        className={`page ${p.fullWidth ? "full-width" : ""} ${p.smallText ? "small-text" : ""} font-${p.font} ${p.cover ? "with-cover" : ""} ${p.icon ? "with-icon" : ""}`}
+        className={`page ${p.kind === "database" ? "database-page" : "document-page"} ${p.fullWidth || p.kind === "database" ? "full-width" : ""} ${p.smallText ? "small-text" : ""} font-${p.font} ${p.cover ? "with-cover" : ""} ${p.icon ? "with-icon" : ""}`}
       >
         {p.icon && (
           <button
@@ -373,7 +380,7 @@ export function WorkspaceApp() {
             aria-label="Change page icon"
             onClick={() => show("icon")}
           >
-            <PageIcon icon={p.icon} size={72} />
+            <PageIcon icon={p.icon} size={p.kind === "database" ? 28 : 56} />
           </button>
         )}
         <div className="page-customize">
@@ -386,12 +393,6 @@ export function WorkspaceApp() {
           <button onClick={() => show("cover")}>
             <ImageIcon size={15} />
             {p.cover ? "Change cover" : "Add cover"}
-          </button>
-          <button onClick={() => show("brief")}>Shared project brief</button>
-          <button onClick={() => show("capture")}>Save from ChatGPT</button>
-          <button onClick={() => show("comments")}>
-            <ChatCircleIcon size={15} />
-            Add comment
           </button>
         </div>
         <textarea
@@ -588,6 +589,7 @@ export function WorkspaceApp() {
                 <span>/</span>
               </span>
             ))}
+            {!mainPage && <span className="breadcrumb-current">Home</span>}
             {mainPage && (
               <button
                 className="breadcrumb-current"
@@ -626,42 +628,42 @@ export function WorkspaceApp() {
                         : "Retry save"}
               </span>
             </button>
-            <button className="share-button" onClick={() => show("share")}>
-              Share
-            </button>
-            <IconButton label="Ask AI" onClick={() => show("ai")}>
-              <SparkleIcon size={18} />
-            </IconButton>
-            <IconButton label="Comments" onClick={() => show("comments")}>
-              <ChatCircleIcon size={18} />
-            </IconButton>
-            <IconButton label="Page history" onClick={() => show("history")}>
-              <ClockCounterClockwiseIcon size={18} />
-            </IconButton>
             {page && (
-              <IconButton
-                label={
-                  page.favorite ? "Remove from favorites" : "Add to favorites"
-                }
-                onClick={() =>
-                  updatePage((p) => {
-                    p.favorite = !p.favorite;
-                  })
-                }
-              >
-                <StarIcon
-                  size={20}
-                  weight={page.favorite ? "fill" : "regular"}
-                  color={page.favorite ? "#d4a341" : undefined}
-                />
-              </IconButton>
+              <>
+                <button className="share-button" onClick={() => show("share")}>
+                  Share
+                </button>
+                <IconButton label="Ask AI" onClick={() => show("ai")}>
+                  <SparkleIcon size={18} />
+                </IconButton>
+                {page && (
+                  <IconButton
+                    label={
+                      page.favorite
+                        ? "Remove from favorites"
+                        : "Add to favorites"
+                    }
+                    onClick={() =>
+                      updatePage((p) => {
+                        p.favorite = !p.favorite;
+                      })
+                    }
+                  >
+                    <StarIcon
+                      size={20}
+                      weight={page.favorite ? "fill" : "regular"}
+                      color={page.favorite ? "#d4a341" : undefined}
+                    />
+                  </IconButton>
+                )}
+                <IconButton
+                  label="Page menu"
+                  onClick={() => setMenu(menu ? null : page || null)}
+                >
+                  <DotsThreeIcon size={23} />
+                </IconButton>
+              </>
             )}
-            <IconButton
-              label="Page menu"
-              onClick={() => setMenu(menu ? null : page || null)}
-            >
-              <DotsThreeIcon size={23} />
-            </IconButton>
           </div>
         </header>
         {["conflict", "error", "offline"].includes(status) && (
@@ -713,7 +715,14 @@ export function WorkspaceApp() {
               <button onClick={() => show("cover")}>Change cover</button>
             </div>
           )}
-          {mainPage ? (
+          {active === WORKSPACE_HOME || !mainPage ? (
+            <WorkspaceHome
+              workspace={workspace}
+              open={open}
+              create={create}
+              templates={() => show("templates")}
+            />
+          ) : mainPage ? (
             renderPage(mainPage)
           ) : (
             <EmptyState
@@ -826,6 +835,15 @@ export function WorkspaceApp() {
               >
                 <DownloadSimpleIcon size={17} />
                 Export Markdown
+              </button>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("comments");
+                }}
+              >
+                <ChatCircleIcon size={17} />
+                Comments
               </button>
               <button
                 onClick={() => {
@@ -1008,77 +1026,15 @@ export function WorkspaceApp() {
       )}
       {modal === "icon" && page && (
         <Modal title="Page icon" onClose={() => show(null)}>
-          <div className="emoji-grid">
-            {[
-              "👋",
-              "📝",
-              "📖",
-              "🗂️",
-              "👜",
-              "🏡",
-              "🌱",
-              "🎨",
-              "☕",
-              "✍️",
-              "💡",
-              "📅",
-              "🎯",
-              "🚀",
-              "🧠",
-              "🌤️",
-              "✨",
-              "🔖",
-              "💻",
-              "🛠️",
-              "🎵",
-              "📌",
-              "🌊",
-              "🍃",
-              "📚",
-              "✅",
-              "💬",
-              "🔬",
-              "🧭",
-              "🍋",
-              "🦉",
-              "🪴",
-            ].map((icon) => (
-              <button
-                key={icon}
-                aria-label={`Use ${icon} icon`}
-                onClick={() => {
-                  updatePage((p) => {
-                    p.icon = icon;
-                  });
-                  show(null);
-                }}
-              >
-                {icon}
-              </button>
-            ))}
-          </div>
-          <Field label="Custom emoji">
-            <input
-              maxLength={24}
-              value={page.icon}
-              onChange={(e) =>
-                updatePage((p) => {
-                  p.icon = e.target.value;
-                })
-              }
-            />
-          </Field>
-          <button
-            className="subtle"
-            onClick={() => {
+          <IconPicker
+            value={page.icon}
+            onChange={(icon) => {
               updatePage((p) => {
-                p.icon = "";
+                p.icon = icon;
               });
               show(null);
             }}
-          >
-            Remove icon
-          </button>
+          />
         </Modal>
       )}
       {modal === "cover" && page && (

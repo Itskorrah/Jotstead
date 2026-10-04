@@ -67,6 +67,7 @@ const filterSchema = z.object({
 });
 export type Filter = z.infer<typeof filterSchema>;
 const viewSchema = z.object({
+  hiddenProperties: z.array(z.string().max(80)).max(100).optional(),
   id: idSchema,
   name: z.string().max(80),
   type: z.enum(viewTypes),

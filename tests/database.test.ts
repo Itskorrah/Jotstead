@@ -63,6 +63,9 @@ it("computes relation rollups and catches cyclic formulas", () => {
 it("runs typed edit-triggered rules once without cascading", () => {
   const w = createSeed(),
     row = w.pages.find((p) => p.id === "task-1")!;
+  w.pages
+    .find((p) => p.id === "projects")!
+    .properties.push({ id: "complete", name: "Complete", type: "checkbox" });
   w.rules.push({
     id: "complete-on-done",
     name: "Complete on done",

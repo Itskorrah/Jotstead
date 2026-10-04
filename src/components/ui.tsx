@@ -5,7 +5,7 @@ import {
   type ReactNode,
   type ButtonHTMLAttributes,
 } from "react";
-import { XIcon, FileTextIcon, DatabaseIcon } from "@phosphor-icons/react";
+import { XIcon, FileTextIcon } from "@phosphor-icons/react";
 export function IconButton({
   label,
   children,
@@ -22,25 +22,7 @@ export function IconButton({
     </button>
   );
 }
-export function PageIcon({
-  icon,
-  kind = "page",
-  size = 18,
-}: {
-  icon: string;
-  kind?: "page" | "database";
-  size?: number;
-}) {
-  return icon ? (
-    <span className="page-emoji" style={{ fontSize: size }} aria-hidden="true">
-      {icon}
-    </span>
-  ) : kind === "database" ? (
-    <DatabaseIcon size={size} color="var(--muted)" />
-  ) : (
-    <FileTextIcon size={size} color="var(--muted)" />
-  );
-}
+export { PageIcon } from "./page-icons";
 export function Modal({
   title,
   children,
@@ -90,22 +72,62 @@ export function Menu({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLElement | null>(null);
   useEffect(() => {
+    if (!trigger.current) {
+      const focused = document.activeElement as HTMLElement | null;
+      if (focused?.matches("button,[role=button]")) trigger.current = focused;
+    }
     const close = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        onClose();
+        trigger.current?.focus();
+      }
     };
-    const click = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) onClose();
+    const click = (e: PointerEvent) => {
+      if (
+        !ref.current?.contains(e.target as Node) &&
+        !trigger.current?.contains(e.target as Node)
+      )
+        onClose();
     };
-    document.addEventListener("keydown", close);
-    document.addEventListener("mousedown", click);
+    document.addEventListener("keydown", close, true);
+    document.addEventListener("pointerdown", click);
     return () => {
-      document.removeEventListener("keydown", close);
-      document.removeEventListener("mousedown", click);
+      document.removeEventListener("keydown", close, true);
+      document.removeEventListener("pointerdown", click);
     };
   }, [onClose]);
   return (
-    <div ref={ref} className={`menu ${className}`}>
+    <div
+      ref={ref}
+      className={`menu ${className}`}
+      onKeyDown={(e) => {
+        if (
+          !["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key) ||
+          (e.target as HTMLElement).matches("input,select,textarea")
+        )
+          return;
+        const items = Array.from(
+          ref.current?.querySelectorAll<HTMLButtonElement>(
+            "button:not(:disabled)",
+          ) || [],
+        );
+        if (!items.length) return;
+        e.preventDefault();
+        const current = items.indexOf(e.target as HTMLButtonElement);
+        const index =
+          e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? items.length - 1
+              : (current + (e.key === "ArrowDown" ? 1 : -1) + items.length) %
+                items.length;
+        items[index].focus();
+      }}
+    >
       {children}
     </div>
   );

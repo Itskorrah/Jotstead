@@ -1,0 +1,366 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T05:15:09.247396Z",
+  "title": "Design System: Jotstead",
+  "extensions": {
+    "colorMeta": {
+      "action-blue": {
+        "role": "primary",
+        "displayName": "Action Blue"
+      },
+      "action-blue-dark": {
+        "role": "primary",
+        "displayName": "Action Blue Dark"
+      },
+      "action-text": {
+        "role": "primary",
+        "displayName": "Action Text"
+      },
+      "action-text-dark": {
+        "role": "primary",
+        "displayName": "Action Text Dark"
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas"
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Sidebar"
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted"
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint"
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover"
+      },
+      "selected": {
+        "role": "neutral",
+        "displayName": "Selected"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line"
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel"
+      },
+      "canvas-dark": {
+        "role": "neutral",
+        "displayName": "Canvas Dark"
+      },
+      "sidebar-dark": {
+        "role": "neutral",
+        "displayName": "Sidebar Dark"
+      },
+      "text-dark": {
+        "role": "neutral",
+        "displayName": "Text Dark"
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Muted Dark"
+      },
+      "faint-dark": {
+        "role": "neutral",
+        "displayName": "Faint Dark"
+      },
+      "hover-dark": {
+        "role": "neutral",
+        "displayName": "Hover Dark"
+      },
+      "selected-dark": {
+        "role": "neutral",
+        "displayName": "Selected Dark"
+      },
+      "line-dark": {
+        "role": "neutral",
+        "displayName": "Line Dark"
+      },
+      "panel-dark": {
+        "role": "neutral",
+        "displayName": "Panel Dark"
+      },
+      "code": {
+        "role": "neutral",
+        "displayName": "Code"
+      },
+      "code-dark": {
+        "role": "neutral",
+        "displayName": "Code Dark"
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger"
+      },
+      "danger-dark": {
+        "role": "semantic",
+        "displayName": "Danger Dark"
+      },
+      "tag-blue-bg": {
+        "role": "semantic",
+        "displayName": "Tag Blue Bg"
+      },
+      "tag-blue-text": {
+        "role": "semantic",
+        "displayName": "Tag Blue Text"
+      },
+      "tag-blue-bg-dark": {
+        "role": "semantic",
+        "displayName": "Tag Blue Bg Dark"
+      },
+      "tag-blue-text-dark": {
+        "role": "semantic",
+        "displayName": "Tag Blue Text Dark"
+      }
+    },
+    "typographyMeta": {
+      "chrome": {
+        "displayName": "Chrome",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "editor": {
+        "displayName": "Editor",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "document-title": {
+        "displayName": "Document Title",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "database-title": {
+        "displayName": "Database Title",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "home-title": {
+        "displayName": "Home Title",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "editor-heading-1": {
+        "displayName": "Editor Heading 1",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "editor-heading-2": {
+        "displayName": "Editor Heading 2",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "editor-heading-3": {
+        "displayName": "Editor Heading 3",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "compact-control": {
+        "displayName": "Compact Control",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "property-label": {
+        "displayName": "Property Label",
+        "purpose": "Extracted workspace or editor hierarchy; see DESIGN.md Typography."
+      },
+      "document-serif": {
+        "displayName": "Document Serif",
+        "purpose": "Document font preference only."
+      },
+      "document-mono": {
+        "displayName": "Document Mono",
+        "purpose": "Document font preference only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay-light",
+        "value": "0 8px 32px #17201618",
+        "purpose": "Light-theme menus, dialogs and mobile sidebar; --shadow."
+      },
+      {
+        "name": "overlay-dark",
+        "value": "0 12px 36px #0006",
+        "purpose": "Dark-theme counterpart of --shadow."
+      },
+      {
+        "name": "mobile-editor-edge",
+        "value": "0 -2px 12px #00000005",
+        "purpose": "Faint separator on the narrow-screen fixed editing toolbar."
+      }
+    ],
+    "motion": [
+      {
+        "name": "details-disclosure",
+        "value": "transform 0.1s",
+        "purpose": "Existing details disclosure only; no general animation grammar is inferred."
+      },
+      {
+        "name": "saving-pulse",
+        "value": "pulse 1.5s infinite",
+        "purpose": "Saving dot opacity feedback."
+      },
+      {
+        "name": "loading-pulse",
+        "value": "pulse 2s infinite",
+        "purpose": "Editor loading opacity feedback."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation: none !important; transition: none !important; scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important;",
+        "purpose": "Effective reduced-motion overrides from both stylesheets."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "database-tools-wrap",
+        "value": "900px"
+      },
+      {
+        "name": "narrow-screen",
+        "value": "767px"
+      },
+      {
+        "name": "coarse-pointer",
+        "value": "(pointer: coarse)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Blue action with the currently inherited hover; hover drift is not a palette token.",
+      "html": "<button class=\"ds-primary\">New page</button>",
+      "css": ".ds-primary{border:0;display:inline-flex;align-items:center;gap:7px;line-height:1.4;cursor:pointer;font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;background:var(--blue,#256b86);color:#fff;border:1px solid #00000008;border-radius:6px;padding:6px 11px;font-weight:500;justify-content:center;min-height:32px;}.ds-primary:hover:not(:disabled){background:#1c73c8;}.ds-primary:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}.ds-primary:active:not(:disabled){background:var(--selected,#e7eae5);filter:brightness(.9);}.ds-primary:disabled{opacity:.5;cursor:not-allowed;}:host-context([data-theme=\"dark\"]) .ds-primary{color:#182329;}:host-context([data-theme=\"dark\"]) .ds-primary:hover:not(:disabled){background:var(--blue,#8ec5db);}"
+    },
+    {
+      "name": "Subtle action",
+      "kind": "button",
+      "refersTo": "button-subtle",
+      "description": "Muted secondary action without a resting fill.",
+      "html": "<button class=\"ds-subtle\">Add cover</button>",
+      "css": ".ds-subtle{border:0;display:inline-flex;align-items:center;gap:7px;line-height:1.4;cursor:pointer;font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;background:transparent;color:var(--muted,#626661);border-radius:6px;padding:6px 8px;}.ds-subtle:hover:not(:disabled){background:var(--hover,#f0f1ee);}.ds-subtle:active:not(:disabled){background:var(--selected,#e7eae5);}.ds-subtle:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}.ds-subtle:disabled{opacity:.5;cursor:not-allowed;}"
+    },
+    {
+      "name": "Icon action",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "Labeled monochrome compact action.",
+      "html": "<button class=\"ds-icon\" aria-label=\"More actions\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm56-12a12,12,0,1,0,12,12A12,12,0,0,0,196,116ZM60,116a12,12,0,1,0,12,12A12,12,0,0,0,60,116Z\"/></svg></button>",
+      "css": ".ds-icon{border:0;display:inline-flex;align-items:center;gap:7px;line-height:1.4;cursor:pointer;font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;background:transparent;color:var(--muted,#626661);border-radius:6px;padding:0;width:32px;min-width:32px;height:32px;justify-content:center;}.ds-icon:hover:not(:disabled){background:var(--hover,#f0f1ee);}.ds-icon:active:not(:disabled){background:var(--selected,#e7eae5);}.ds-icon:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}@media(pointer:coarse){.ds-icon{min-width:44px;min-height:44px;}}"
+    },
+    {
+      "name": "Native text field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Thin-bordered native field with shared focus.",
+      "html": "<input class=\"ds-input\" aria-label=\"Workspace name\" value=\"Personal workspace\"/>",
+      "css": ".ds-input{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;background:transparent;color:var(--text,#292b2c);border:1px solid var(--line,#e3e5e0);border-radius:4px;padding:8px;max-width:100%;caret-color:var(--blue,#256b86);}.ds-input::placeholder{color:var(--faint,#6d706b);}.ds-input:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}@media(pointer:coarse){.ds-input{font-size:16px;}}"
+    },
+    {
+      "name": "Sidebar navigation",
+      "kind": "nav",
+      "refersTo": "navigation-selected",
+      "description": "A single filled current location and neutral New page action.",
+      "html": "<nav class=\"ds-nav\"><button aria-current=\"page\" class=\"ds-nav-current\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"20\" height=\"20\" fill=\"currentColor\"><path d=\"M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z\"/></svg>Home</button><button class=\"ds-nav-create\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"20\" height=\"20\" fill=\"currentColor\"><path d=\"M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z\"/></svg>New page</button></nav>",
+      "css": ".ds-nav{background:var(--sidebar,#f6f6f4);width:216px;padding:0 12px 20px;}.ds-nav button{border:0;display:inline-flex;align-items:center;gap:7px;line-height:1.4;cursor:pointer;font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;width:100%;height:36px;margin-bottom:3px;gap:10px;padding:0 8px;border-radius:6px;color:var(--muted,#626661);background:transparent;font-weight:500;}.ds-nav button.ds-nav-current{background:var(--selected,#e7eae5);color:var(--text,#292b2c);}.ds-nav button.ds-nav-create{color:var(--text,#292b2c);margin-top:12px;border:1px solid var(--line,#e3e5e0);background:var(--panel,#fff);}.ds-nav button:hover{background:var(--hover,#f0f1ee);}.ds-nav button:active{background:var(--selected,#e7eae5);}.ds-nav button:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}.ds-nav svg{color:var(--muted,#626661);}@media(pointer:coarse){.ds-nav button{min-height:44px;}}.ds-nav button.ds-nav-current:hover{background:var(--selected,#e7eae5);}"
+    },
+    {
+      "name": "Blue category tag",
+      "kind": "chip",
+      "refersTo": "chip-blue",
+      "description": "Content category with theme-specific readable colors.",
+      "html": "<span class=\"ds-tag\">In progress</span>",
+      "css": ".ds-tag{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;display:inline-flex;align-items:center;background:#d3e5ef;color:#25546a;font-size:12px;line-height:1.5;border-radius:4px;padding:2px 7px;}:host-context([data-theme=\"dark\"]) .ds-tag{background:#203848;color:#b6dcee;}"
+    },
+    {
+      "name": "Database record card",
+      "kind": "card",
+      "refersTo": "database-card",
+      "description": "Flat record card with wrapping title and category metadata.",
+      "html": "<button class=\"ds-card\"><span class=\"ds-card-name\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z\"/></svg><strong>Draft a thoughtful project brief</strong></span><span class=\"ds-card-meta\">Project notes</span></button>",
+      "css": ".ds-card{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;display:block;width:100%;border:1px solid var(--line,#e3e5e0);background:var(--panel,#fff);color:var(--text,#292b2c);border-radius:8px;padding:14px;text-align:left;cursor:pointer;box-shadow:none;margin-bottom:8px;}.ds-card-name{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px;}.ds-card-name strong{min-width:0;overflow-wrap:anywhere;font-weight:550;line-height:1.5;}.ds-card svg{flex-shrink:0;color:var(--muted,#626661);}.ds-card-meta{font-size:12px;color:var(--muted,#626661);display:block;}.ds-card:hover{background:var(--hover,#f0f1ee);}.ds-card:active{background:var(--selected,#e7eae5);}.ds-card:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}"
+    },
+    {
+      "name": "Compact database view strip",
+      "kind": "nav",
+      "refersTo": "view-tab",
+      "description": "Neutral active view and a progressive picker trigger.",
+      "html": "<nav class=\"ds-views\"><button aria-current=\"page\" class=\"ds-view-current\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"16\" height=\"16\" fill=\"currentColor\"><path d=\"M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM216,64V96H40V64ZM40,160H80v32H40Zm176,32H96V160H216v32Z\"/></svg>Table</button><button>Board</button><button>Calendar</button><button aria-label=\"More views\" class=\"ds-more\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm56-12a12,12,0,1,0,12,12A12,12,0,0,0,196,116ZM60,116a12,12,0,1,0,12,12A12,12,0,0,0,60,116Z\"/></svg>Views</button></nav>",
+      "css": ".ds-views{display:flex;align-items:center;gap:3px;flex-wrap:wrap;}.ds-views button{border:0;display:inline-flex;align-items:center;gap:7px;line-height:1.4;cursor:pointer;font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;padding:8px 9px;border-radius:6px;color:var(--muted,#626661);font-size:13px;font-weight:500;background:transparent;white-space:nowrap;}.ds-views button.ds-view-current{color:var(--text,#292b2c);background:var(--hover,#f0f1ee);font-weight:600;}.ds-views button.ds-more{gap:3px;padding:8px 6px;font-size:12px;}.ds-views button:hover{background:var(--hover,#f0f1ee);}.ds-views button:active{background:var(--selected,#e7eae5);}.ds-views button:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}@media(max-width:767px){.ds-views button{font-size:12px;padding:8px 6px;}}"
+    },
+    {
+      "name": "Native category property",
+      "kind": "input",
+      "refersTo": "property-select",
+      "description": "The same native select styling used in cells and row details.",
+      "html": "<select class=\"ds-property\" aria-label=\"Status\"><option>In progress</option><option>Complete</option></select>",
+      "css": ".ds-property{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;border:0;outline:0;width:auto;min-width:100px;max-width:180px;border-radius:4px;font-size:12px;padding:5px 7px;background:#d3e5ef;color:#25546a;cursor:pointer;}.ds-property:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:-2px;}:host-context([data-theme=\"dark\"]) .ds-property{background:#203848;color:#b6dcee;}@media(pointer:coarse){.ds-property{font-size:16px;}}"
+    },
+    {
+      "name": "Live document page link",
+      "kind": "custom",
+      "description": "Monochrome document link with the live node marker.",
+      "html": "<div class=\"ds-page-link\" data-page-link=\"true\"><a href=\"#project-notes\"><svg aria-hidden=\"true\" viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z\"/></svg><span>Project notes</span></a></div>",
+      "css": ".ds-page-link{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;font-size:14px;font-size:16px;line-height:1.5;color:var(--text,#292b2c);padding:4px 2px;font-weight:500;margin:4px 0;}.ds-page-link a{display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration-color:var(--line,#e3e5e0);text-underline-offset:3px;}.ds-page-link svg{flex-shrink:0;color:var(--muted,#626661);vertical-align:middle;}.ds-page-link:hover{background:var(--hover,#f0f1ee);}.ds-page-link a:focus-visible{outline:2px solid var(--blue,#256b86);outline-offset:2px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Workbench",
+    "overview": "Jotstead is a flat, neutral working surface: calm enough for long writing sessions, compact enough for real databases. White and softly neutral light surfaces become charcoal in dark mode; a restrained blue identifies action, focus and editable state. The interface uses the platform system sans family, while documents retain their own serif, mono, size and width preferences.\n\nContent comes before controls. Navigation has one dominant current location, with quieter duplicate shortcuts. Working surfaces rely on rows, readable type and modest borders; contextual menus and dialogs carry secondary controls. Documents can hold expressive content, covers and images without making the surrounding workspace decorative.",
+    "keyCharacteristics": [
+      "Flat neutral surfaces with restrained blue action and focus.",
+      "Compact system sans chrome; expressive document preferences.",
+      "One dominant navigation selection and progressive controls.",
+      "Monochrome regular-weight Phosphor icons across page surfaces.",
+      "Immediate repeated interactions, visible keyboard focus and reduced motion."
+    ],
+    "rules": [
+      {
+        "name": "Content First",
+        "body": "Keep the working content visually dominant. Use compact titles and toolbars on data surfaces; reserve spacious reading geometry for documents.",
+        "section": "layout"
+      },
+      {
+        "name": "One Current Location",
+        "body": "Use the selected fill for the current main navigation or tree location. A duplicate favorite shortcut may use stronger text without another selected fill.",
+        "section": "colors"
+      },
+      {
+        "name": "Chrome Stays Native",
+        "body": "Use the system sans family for workspace controls. Apply serif and mono choices within documents rather than introducing a separate display face for chrome.",
+        "section": "typography"
+      },
+      {
+        "name": "Flat at Rest",
+        "body": "Use neutral tone and thin borders for working surfaces. Reserve the overlay shadow for menus, dialogs and the mobile sidebar.",
+        "section": "elevation"
+      },
+      {
+        "name": "State Before Motion",
+        "body": "Make hover, press, selection and keyboard focus readable immediately. Honor reduced motion; do not turn the unused easing declaration into a transition requirement.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use the source light/dark semantic variables for working surfaces, text, dividers and focus.",
+      "Do keep one dominant sidebar selection and use monochrome Phosphor page icons consistently.",
+      "Do share native property fields between table cells and row details, with readable date display and a native editor.",
+      "Do place block controls in the desktop editing gutter and use the mobile editing toolbar on narrow screens.",
+      "Do preserve document font, small-text, full-width, cover and image preferences.",
+      "Do retain visible focus, accessible labels, disabled states and the coarse-pointer field sizing."
+    ],
+    "donts": [
+      "Don't introduce decorative dashboard cards or a display font into workspace chrome.",
+      "Don't expand every database view into the default toolbar; use the existing view picker.",
+      "Don't use emoji or typographic glyphs as new interface or page icons.",
+      "Don't use shadows to lift ordinary database cards or working rows.",
+      "Don't require hover to reach essential controls or add animated navigation."
+    ]
+  }
+}

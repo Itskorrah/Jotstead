@@ -147,6 +147,20 @@ export function runRules(w: Workspace, row: Page, changedProperty: string) {
   }
 }
 export function labelOf(value: Value, w: Workspace, type?: string) {
+  if (
+    type === "date" &&
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value)
+  ) {
+    const date = new Date(value + "T00:00:00Z");
+    if (Number.isFinite(date.getTime()))
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(date);
+  }
   return Array.isArray(value)
     ? value
         .map((v) =>

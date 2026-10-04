@@ -1,3 +1,6 @@
+import { createElement } from "react";
+import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
+import { PageIcon } from "@/components/page-icons";
 import { Node, mergeAttributes } from "@tiptap/core";
 export const Callout = Node.create({
   name: "callout",
@@ -105,6 +108,23 @@ export const PageLink = Node.create({
   parseHTML() {
     return [{ tag: "div[data-page-link]" }];
   },
+  addNodeView() {
+    return ReactNodeViewRenderer(({ node }) =>
+      createElement(
+        NodeViewWrapper,
+        { className: "page-link", "data-page-link": "true" },
+        createElement(
+          "a",
+          { href: `/?page=${node.attrs.pageId}` },
+          createElement(PageIcon, {
+            icon: String(node.attrs.icon || ""),
+            size: 18,
+          }),
+          createElement("span", null, String(node.attrs.title || "Untitled")),
+        ),
+      ),
+    );
+  },
   renderHTML({ node, HTMLAttributes }) {
     return [
       "div",
@@ -115,7 +135,7 @@ export const PageLink = Node.create({
       [
         "a",
         { href: `/?page=${node.attrs.pageId}` },
-        `${node.attrs.icon ? node.attrs.icon + " " : ""}${node.attrs.title}`,
+        String(node.attrs.title || "Untitled"),
       ],
     ];
   },

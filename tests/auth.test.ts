@@ -1,10 +1,56 @@
-import { it, expect } from "vitest";
+import { it, expect, vi, afterEach } from "vitest";
+import { createVault } from "../src/lib/chatgpt-vault";
+import * as vaultModule from "../src/lib/chatgpt-vault";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   makeSession,
   verifySession,
   isSameOrigin,
   guard,
+  authorize,
 } from "../src/lib/auth";
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
+it("keeps ChatGPT optional for a local workspace even after owner binding", () => {
+  const v = createVault(mkdtempSync(join(tmpdir(), "jotstead-local-auth-")));
+  v.connect(
+    {
+      issuer: "https://auth.openai.com",
+      subject: "local-owner",
+      clientId: "oaiapp_local",
+    },
+    { accessToken: "token", scope: "openid", expiresAt: Date.now() + 60000 },
+    () => {},
+  );
+  vi.spyOn(vaultModule, "getVault").mockReturnValue(v);
+  vi.stubEnv("JOTSTEAD_LOCAL_ONLY", "1");
+  vi.stubEnv("JOTSTEAD_PASSWORD", "");
+  try {
+    expect(authorize(new Request("http://127.0.0.1:3000/api/workspace"))).toBe(
+      true,
+    );
+    expect(
+      authorize(
+        new Request("http://127.0.0.1:3000/api/workspace", {
+          headers: { Host: "remote.example" },
+        }),
+      ),
+    ).toBe(false);
+    expect(authorize(new Request("https://remote.example/api/workspace"))).toBe(
+      false,
+    );
+    vi.stubEnv("JOTSTEAD_LOCAL_ONLY", "0");
+    expect(authorize(new Request("http://127.0.0.1:3000/api/workspace"))).toBe(
+      false,
+    );
+  } finally {
+    v.close();
+  }
+});
 it("rejects forged, expired, and wrong password sessions", () => {
   const s = makeSession("secret", 1000);
   expect(verifySession(s, "secret", 1001)).toBe(true);

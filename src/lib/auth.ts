@@ -40,15 +40,26 @@ export function authorize(req: Request): boolean {
   if (token && bearer?.startsWith("Bearer ") && equal(bearer.slice(7), token))
     return true;
   const session = cookieValue(req, "jotstead_session");
+  const password = process.env.JOTSTEAD_PASSWORD;
+  const url = new URL(req.url);
+  let browserHost: string;
+  try {
+    browserHost = new URL(`http://${req.headers.get("host") || url.host}`)
+      .hostname;
+  } catch {
+    return false;
+  }
+  const localHosts = ["localhost", "127.0.0.1", "[::1]"];
+  if (
+    !password &&
+    process.env.JOTSTEAD_LOCAL_ONLY === "1" &&
+    localHosts.includes(url.hostname) &&
+    localHosts.includes(browserHost)
+  )
+    return true;
   const vault = getVault();
   if (vault.owner()) return vault.verifySession(session);
-  const password = process.env.JOTSTEAD_PASSWORD;
-  if (!password) {
-    return (
-      process.env.JOTSTEAD_LOCAL_ONLY === "1" &&
-      ["localhost", "127.0.0.1", "[::1]"].includes(new URL(req.url).hostname)
-    );
-  }
+  if (!password) return false;
   return verifySession(session, password);
 }
 export function cookieValue(req: Request, name: string) {

@@ -2,6 +2,7 @@
 import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { launchMode } from "./launch-mode.mjs";
 const root = resolve(import.meta.dirname, "..");
 for (const file of [".env.local", ".env"]) {
   const path = join(root, file);
@@ -22,11 +23,9 @@ process.env.JOTSTEAD_DATA_DIR = resolve(
   root,
   process.env.JOTSTEAD_DATA_DIR || "data",
 );
-const localPreview = process.argv.includes("--local");
-process.env.HOSTNAME = localPreview
-  ? "127.0.0.1"
-  : process.env.JOTSTEAD_BIND_HOST || "127.0.0.1";
-if (localPreview) process.env.JOTSTEAD_LOCAL_ONLY = "1";
+const mode = launchMode(process.env, process.argv.slice(2));
+process.env.HOSTNAME = mode.host;
+process.env.JOTSTEAD_LOCAL_ONLY = mode.local;
 process.env.NODE_ENV = "production";
 process.env.PORT ||= "3000";
 await import(pathToFileURL(server).href);

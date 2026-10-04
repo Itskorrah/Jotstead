@@ -5,7 +5,7 @@ This release adds personal local ChatGPT sign-in, optional plan inference, selec
 ## First connection
 
 1. Run `pnpm install --frozen-lockfile`, `pnpm build`, then `pnpm preview` with Node 24+ and pnpm 11.19.0.
-2. If this workspace already has a password, open it with that password first and use **Settings → ChatGPT & integrations → Connect ChatGPT for sign-in**. This migration proof is tied to the pending sign-in; an unauthenticated visitor cannot claim existing notes. Otherwise, open **http://127.0.0.1:3000** and click **Continue with ChatGPT**. Complete the OpenAI browser login yourself. The initial request asks only for identity scopes.
+2. If this workspace already has a password, open it with that password first and use **Settings → ChatGPT & integrations → Connect ChatGPT for sign-in**. This migration proof is tied to the pending sign-in; an unauthenticated visitor cannot claim existing notes. Otherwise, open **http://127.0.0.1:3000** directly and choose **Settings → ChatGPT & integrations → Connect ChatGPT for sign-in**. ChatGPT is optional for local workspace access. Complete the OpenAI browser login yourself. The initial request asks only for identity scopes.
 3. The callback verifies OpenAI's ID-token signature, issuer, issued client audience, expiry and nonce. Before the first owner binding, it snapshots `data/workspace.sqlite` to `data/pre-chatgpt-backup/`. Existing uploads remain in place. A different verified identity cannot replace the owner.
 4. In **Settings → ChatGPT & integrations**, choose **Enable ChatGPT plan usage** and approve that additional permission if desired. Eligible plan access and provider availability are governed by OpenAI. No API key is created and no key payment is triggered as a fallback.
 

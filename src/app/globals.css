@@ -664,8 +664,7 @@ a.subtle {
   font-size: 14px;
   margin-bottom: 16px;
 }
-.loading-screen,
-.login {
+.loading-screen {
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -677,20 +676,112 @@ a.subtle {
   font-size: 20px;
   margin-top: 20px;
 }
+.login {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: max(40px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+}
+.login-content {
+  width: min(100%, 380px);
+  text-align: center;
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.login-brand img {
+  display: block;
+  border-radius: 9px;
+}
 .login h1 {
-  font-size: 29px;
-  letter-spacing: -0.5px;
-  margin: 20px 0 5px;
+  margin: 0;
+  font-size: clamp(25px, 4vw, 30px);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.7px;
+  text-wrap: balance;
 }
 .login p {
   color: var(--muted);
+  text-wrap: pretty;
 }
-.login form {
-  width: 320px;
+.login .login-subtitle {
+  max-width: 300px;
+  margin: 12px auto 28px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.login .chatgpt-button {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 16px;
+  touch-action: manipulation;
+}
+.login .chatgpt-button:hover:not(:disabled) {
+  background: var(--text);
+  opacity: 0.9;
+}
+.login-notes {
+  display: grid;
+  gap: 12px;
   margin-top: 20px;
 }
+.login-notes p,
+.login .login-detail {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.login .login-detail {
+  margin-top: 20px;
+}
+.login-password {
+  margin-top: 20px;
+  text-align: left;
+}
+.login-password summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}
+.login form {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+}
+.login input,
 .login .primary {
   width: 100%;
+  min-height: 44px;
+}
+.login .error-text {
+  margin-top: 16px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.login-recovery {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 12px;
+}
+.login-recovery button {
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 12px;
 }
 /* Editor geometry and block behaviors */
 .editor-root {
@@ -2617,11 +2708,6 @@ a.subtle {
 .chatgpt-button:disabled {
   opacity: 0.6;
   cursor: wait;
-}
-.login-detail {
-  max-width: 370px;
-  font-size: 13px;
-  line-height: 1.6;
 }
 .chatgpt-settings {
   max-width: 620px;

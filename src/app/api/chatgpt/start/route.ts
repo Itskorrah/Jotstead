@@ -72,9 +72,17 @@ export async function POST(req: Request) {
         },
       },
     );
-  } catch {
+  } catch (e) {
     return Response.json(
-      { error: "Could not start ChatGPT sign-in. Please try again." },
+      {
+        error:
+          e instanceof Error &&
+          /^(Set JOTSTEAD_CHATGPT_CLIENT_ID|The configured client)/.test(
+            e.message,
+          )
+            ? e.message
+            : "Could not start ChatGPT sign-in. Please try again.",
+      },
       { status: 400 },
     );
   }

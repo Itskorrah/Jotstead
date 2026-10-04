@@ -129,6 +129,145 @@ it("keeps stale refreshes from restoring disconnected credentials", () => {
   expect(v.credentials()).toBeNull();
   v.close();
 });
+it("uses a supplied issued local client without dynamic registration metadata", () => {
+  vi.stubEnv("JOTSTEAD_CHATGPT_CLIENT_ID", "oaiapp_localIssued");
+  const v = createVault(dir());
+  try {
+    const url = new URL(
+      startAuthorization(v, "http://127.0.0.1:3000/auth/callback", false).url,
+    );
+    expect(url.searchParams.get("client_id")).toBe("oaiapp_localIssued");
+    expect(url.searchParams.has("agent_name_hint")).toBe(false);
+    expect(url.searchParams.get("redirect_uri")).toBe(
+      "http://127.0.0.1:3000/auth/callback",
+    );
+  } finally {
+    v.close();
+  }
+});
+it.each(["dynamic_agent_client", "oaiapp_example", "invented-client"])(
+  "refuses a configured placeholder %s before redirecting to OpenAI",
+  (client) => {
+    vi.stubEnv("JOTSTEAD_CHATGPT_CLIENT_ID", client);
+    const v = createVault(dir());
+    try {
+      expect(() =>
+        startAuthorization(v, "http://127.0.0.1:3000/auth/callback", false),
+      ).toThrow(/issued.*client/i);
+      expect(v.owner()).toBeNull();
+    } finally {
+      v.close();
+    }
+  },
+);
+it("does not replace a bound owner's registration with another configured client", () => {
+  const v = createVault(dir());
+  v.connect(identity, credentials, () => {});
+  vi.stubEnv("JOTSTEAD_CHATGPT_CLIENT_ID", "oaiapp_other");
+  try {
+    expect(() =>
+      startAuthorization(v, "http://127.0.0.1:3000/auth/callback", false),
+    ).toThrow(/owner.*registration/i);
+    expect(v.owner()?.clientId).toBe(identity.clientId);
+    expect(v.credentials()?.accessToken).toBe(credentials.accessToken);
+  } finally {
+    v.close();
+  }
+});
+it("requests consent only when the user explicitly enables plan usage", () => {
+  const v = createVault(dir());
+  try {
+    const normal = new URL(
+      startAuthorization(v, "http://127.0.0.1:3000/auth/callback", false).url,
+    );
+    const sharing = new URL(
+      startAuthorization(v, "http://127.0.0.1:3000/auth/callback", true).url,
+    );
+    expect(normal.searchParams.has("prompt")).toBe(false);
+    expect(sharing.searchParams.get("prompt")).toBe("consent");
+  } finally {
+    v.close();
+  }
+});
+it.each(["callback", "token"])(
+  "explains invalid_client from %s without leaking provider text or binding ownership",
+  async (source) => {
+    const v = createVault(dir());
+    const start = startAuthorization(
+      v,
+      "http://127.0.0.1:3000/auth/callback",
+      false,
+    );
+    const auth = new URL(start.url);
+    const callback = new URL("http://127.0.0.1:3000/auth/callback");
+    callback.search = new URLSearchParams({
+      state: auth.searchParams.get("state")!,
+      ...(source === "callback"
+        ? {
+            error: "invalid_client",
+            error_description: "DO_NOT_REFLECT_PROVIDER_SECRET",
+          }
+        : { code: "secret-code", client_id: "oaiapp_issued" }),
+    }).toString();
+    const request: typeof fetch = async () =>
+      Response.json(
+        {
+          error: "invalid_client",
+          error_description: "DO_NOT_REFLECT_PROVIDER_SECRET",
+        },
+        { status: 401 },
+      );
+    try {
+      const error = await finishAuthorization(
+        v,
+        callback,
+        start.browserToken,
+        () => {
+          throw new Error("Must not back up an invalid identity");
+        },
+        { request },
+      ).catch((e) => e);
+      expect(error.code).toBe("invalid_client");
+      expect(error.message).toMatch(/OpenAI rejected Jotstead.*registration/i);
+      expect(error.message).not.toContain("DO_NOT_REFLECT_PROVIDER_SECRET");
+      expect(v.owner()).toBeNull();
+      expect(v.credentials()).toBeNull();
+    } finally {
+      v.close();
+    }
+  },
+);
+it("retains an issued client after invalid_grant and asks for a fresh attempt", async () => {
+  const v = createVault(dir());
+  const start = startAuthorization(
+    v,
+    "http://127.0.0.1:3000/auth/callback",
+    false,
+  );
+  const callback = new URL("http://127.0.0.1:3000/auth/callback");
+  callback.search = new URLSearchParams({
+    state: new URL(start.url).searchParams.get("state")!,
+    code: "expired-code",
+    client_id: "oaiapp_issued",
+  }).toString();
+  try {
+    const request: typeof fetch = async () =>
+      Response.json({ error: "invalid_grant" }, { status: 400 });
+    const error = await finishAuthorization(
+      v,
+      callback,
+      start.browserToken,
+      () => {},
+      { request },
+    ).catch((e) => e);
+    expect(error.code).toBe("invalid_grant");
+    expect(error.message).toMatch(/fresh sign-in/i);
+    expect(v.registration()).toBe("oaiapp_issued");
+    expect(v.owner()).toBeNull();
+  } finally {
+    v.close();
+  }
+});
 it.each(["nonce", "issuer", "audience", "expired"])(
   "rejects a signed identity with invalid %s before workspace ownership changes",
   async (failure) => {

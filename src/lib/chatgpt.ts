@@ -6,6 +6,29 @@ const issuer = "https://auth.openai.com";
 const tokenEndpoint = `${issuer}/api/accounts/oauth/token`;
 const resource = "https://api.openai.com/v1";
 const random = () => randomBytes(32).toString("base64url");
+const signInMessages = {
+  invalid_client:
+    "OpenAI rejected Jotstead's app registration (invalid_client). This is an app registration problem, not an incorrect password. Check the OpenAI-issued client and its callback registration, or contact OpenAI if local registration is unavailable. Your notes have not changed.",
+  invalid_grant:
+    "This ChatGPT sign-in code expired or was already used. Return to Jotstead and start a fresh sign-in. Your notes have not changed.",
+  access_denied:
+    "ChatGPT authorization was declined. Return to Jotstead when you want to try again. Your notes have not changed.",
+  unavailable:
+    "OpenAI sign-in is unavailable. Return to Jotstead and try again later. Your notes have not changed.",
+  failed:
+    "ChatGPT sign-in could not be verified. Return to Jotstead and start a fresh sign-in with the workspace owner's account. Your notes have not changed.",
+} as const;
+export class ChatGPTSignInError extends Error {
+  readonly code: keyof typeof signInMessages;
+  constructor(code: unknown) {
+    const safeCode =
+      typeof code === "string" && Object.hasOwn(signInMessages, code)
+        ? (code as keyof typeof signInMessages)
+        : "failed";
+    super(signInMessages[safeCode]);
+    this.code = safeCode;
+  }
+}
 export function startAuthorization(
   v: Vault,
   redirectUri: string,
@@ -23,8 +46,22 @@ export function startAuthorization(
     nonce = random(),
     verifier = random(),
     browserToken = random();
+  const configured = process.env.JOTSTEAD_CHATGPT_CLIENT_ID?.trim();
+  if (
+    configured &&
+    (!/^oaiapp_[A-Za-z0-9_-]{1,200}$/.test(configured) ||
+      configured === "oaiapp_example")
+  )
+    throw new Error(
+      "Set JOTSTEAD_CHATGPT_CLIENT_ID only to a real OpenAI-issued local client ID. Leave it unset for first-time dynamic registration.",
+    );
+  const owner = v.owner();
+  if (owner && configured && configured !== owner.clientId)
+    throw new Error(
+      "The configured client does not match the workspace owner's registration. Restore the original client; ownership has not changed.",
+    );
   const clientId =
-    v.owner()?.clientId || v.registration() || "dynamic_agent_client";
+    owner?.clientId || configured || v.registration() || "dynamic_agent_client";
   v.pending(state, {
     generation: v.authorizationGeneration(),
     migrationSession,
@@ -49,6 +86,7 @@ export function startAuthorization(
     nonce,
     code_challenge_method: "S256",
     code_challenge: createHash("sha256").update(verifier).digest("base64url"),
+    ...(sharing ? { prompt: "consent" } : {}),
     ...(clientId === "dynamic_agent_client"
       ? { agent_name_hint: "Jotstead" }
       : {}),
@@ -101,9 +139,7 @@ export async function finishAuthorization(
   if (callback.origin + callback.pathname !== a.redirectUri)
     throw new Error("Callback address does not match this sign-in attempt");
   if (callback.searchParams.has("error"))
-    throw new Error(
-      "ChatGPT authorization was declined. Your workspace has not changed.",
-    );
+    throw new ChatGPTSignInError(callback.searchParams.get("error"));
   const code = callback.searchParams.get("code"),
     returned = callback.searchParams.get("client_id");
   const clientId =
@@ -147,10 +183,16 @@ export async function finishAuthorization(
       resource,
     }).toString(),
   });
-  if (!r.ok)
-    throw new Error(
-      "Could not finish ChatGPT sign-in. Please start a fresh sign-in.",
+  if (!r.ok) {
+    const body = await r.json().catch(() => null);
+    const code =
+      typeof body?.error === "string"
+        ? body.error
+        : body?.error?.code || body?.error_code;
+    throw new ChatGPTSignInError(
+      code || (r.status >= 500 ? "unavailable" : "failed"),
     );
+  }
   const tokens = parseTokens(await r.json());
   if (!tokens.idToken)
     throw new Error("ChatGPT did not return a verified identity");

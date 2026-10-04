@@ -1,4 +1,5 @@
 "use client";
+import { ChatGPTConnection } from "@/features/chatgpt/connection";
 import { useState, useEffect } from "react";
 import {
   DownloadSimpleIcon,
@@ -56,7 +57,7 @@ export function Settings({
             ["appearance", "Appearance"],
             ["apps", "Apps & offline"],
             ["automations", "Automations"],
-            ["ai", "AI connection"],
+            ["ai", "ChatGPT & integrations"],
           ].map(([id, t]) => (
             <button
               key={id}
@@ -178,27 +179,7 @@ export function Settings({
           {tab === "automations" && (
             <Rules workspace={workspace} update={update} />
           )}
-          {tab === "ai" && (
-            <>
-              <h3>Your AI connection</h3>
-              <div
-                className={`connection-status ${ai?.available ? "connected" : ""}`}
-              >
-                {ai?.available
-                  ? `Connected · ${ai.model}`
-                  : "No provider connected"}
-              </div>
-              <p>
-                Connect your own OpenAI-compatible provider or local Ollama
-                server. Your provider handles the page context you choose to
-                send. Jotstead never stores provider keys in the browser.
-              </p>
-              <p className="muted">
-                Provider setup is documented in the repository’s README. Until
-                connected, your workspace and editor work normally.
-              </p>
-            </>
-          )}
+          {tab === "ai" && <ChatGPTConnection pages={workspace.pages}/>}
         </div>
       </div>
     </Modal>

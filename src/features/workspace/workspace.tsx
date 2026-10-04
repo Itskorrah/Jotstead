@@ -33,6 +33,7 @@ import {
 import { useWorkspace } from "./use-workspace";
 import { Sidebar } from "./sidebar";
 import { Settings, ImportDialog } from "./settings";
+import { ChatGPTLogin } from "@/features/chatgpt/connection";
 import { Database } from "@/features/databases/database";
 import { PropertyCell } from "@/features/databases/property-cell";
 import { runRules } from "@/features/databases/query";
@@ -330,69 +331,7 @@ export function WorkspaceApp() {
     show(null);
   };
   if (store.authRequired)
-    return (
-      <div className="login">
-        <img src="/icons/icon-192.png" alt="Jotstead" width={64} height={64} />
-        <h1>A home for your ideas.</h1>
-        <p>Sign in to your Jotstead workspace.</p>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            try {
-              const r = await fetch("/api/auth", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password }),
-              });
-              const b = await r.json();
-              if (!r.ok) throw new Error(b.error);
-              setPassword("");
-              setLoginError("");
-              await store.load();
-            } catch (e) {
-              setLoginError(
-                e instanceof Error ? e.message : "Could not sign in",
-              );
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <Field label="Workspace password">
-            <input
-              type="password"
-              autoComplete="current-password"
-              required
-              autoFocus
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </Field>
-          {loginError && (
-            <p className="error-text" role="alert">
-              {loginError}
-            </p>
-          )}
-          <button className="primary" disabled={busy}>
-            {busy ? "Signing in…" : "Continue"}
-          </button>
-        </form>
-        {workspace && (
-          <button
-            className="subtle"
-            onClick={() =>
-              download(
-                "jotstead-unsaved-draft.json",
-                workspaceExport(workspace),
-              )
-            }
-          >
-            Export your unsaved draft
-          </button>
-        )}
-      </div>
-    );
+    return <ChatGPTLogin onLogin={store.load} draftExport={workspace ? () => download("jotstead-unsaved-draft.json", workspaceExport(workspace)) : undefined}/>;
   if (!workspace)
     return (
       <div className="loading-screen">

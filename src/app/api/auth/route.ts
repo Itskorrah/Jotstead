@@ -3,9 +3,12 @@ import {
   passwordMatches,
   isSameOrigin,
   readJson,
+  cookieValue,
 } from "@/lib/auth";
+import { getVault } from "@/lib/chatgpt-vault";
 import { getStore } from "@/lib/store";
 export async function POST(req: Request) {
+  if (getVault().owner()) return Response.json({ error: "Continue with ChatGPT to open this workspace." }, { status: 403 });
   if (!isSameOrigin(req))
     return Response.json(
       { error: "Same-origin request required" },
@@ -45,6 +48,7 @@ export async function DELETE(req: Request) {
       { error: "Same-origin request required" },
       { status: 403 },
     );
+  getVault().revokeSession(cookieValue(req, "jotstead_session"));
   return Response.json(
     { ok: true },
     {

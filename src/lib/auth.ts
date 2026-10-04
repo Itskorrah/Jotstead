@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual, createHash } from "node:crypto";
+import { getVault } from "./chatgpt-vault";
 const duration = 7 * 86400000;
 function sign(payload: string, secret: string) {
   return createHmac("sha256", secret).update(payload).digest("base64url");
@@ -38,26 +39,16 @@ export function authorize(req: Request): boolean {
   const bearer = req.headers.get("authorization");
   if (token && bearer?.startsWith("Bearer ") && equal(bearer.slice(7), token))
     return true;
+  const session = cookieValue(req, "jotstead_session");
+  const vault = getVault();
+  if (vault.owner()) return vault.verifySession(session);
   const password = process.env.JOTSTEAD_PASSWORD;
   if (!password) {
-    return (
-      (process.env.NODE_ENV !== "production" &&
-        ["localhost", "127.0.0.1", "[::1]"].includes(
-          new URL(req.url).hostname,
-        )) ||
-      (process.env.JOTSTEAD_LOCAL_ONLY === "1" &&
-        ["localhost", "127.0.0.1", "[::1]"].includes(new URL(req.url).hostname))
-    );
+    return process.env.JOTSTEAD_LOCAL_ONLY === "1" && ["localhost", "127.0.0.1", "[::1]"].includes(new URL(req.url).hostname);
   }
-  const cookie =
-    req.headers
-      .get("cookie")
-      ?.split(";")
-      .map((x) => x.trim())
-      .find((x) => x.startsWith("jotstead_session="))
-      ?.slice(17) || "";
-  return verifySession(cookie, password);
+  return verifySession(session, password);
 }
+export function cookieValue(req: Request, name: string) { return req.headers.get("cookie")?.split(";").map(x => x.trim()).find(x => x.startsWith(name + "="))?.slice(name.length + 1) || ""; }
 export function guard(req: Request, write = false): Response | null {
   if (!authorize(req))
     return Response.json(

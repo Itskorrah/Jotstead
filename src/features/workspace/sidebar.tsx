@@ -12,9 +12,9 @@ import {
   SquaresFourIcon,
   DotsThreeIcon,
   NotePencilIcon,
-  StarIcon,
 } from "@phosphor-icons/react";
 import { type Workspace, type Page, livePages } from "@/lib/model";
+import { WORKSPACE_HOME } from "./home";
 import { IconButton, PageIcon } from "@/components/ui";
 type Props = {
   workspace: Workspace;
@@ -34,11 +34,14 @@ export function Sidebar(p: Props) {
   const [section, setSection] = useState({ favorites: true, private: true });
   const pages = livePages(p.workspace);
   const render = (page: Page, depth = 0, favorite = false) => {
-    const children = pages.filter((c) => c.parentId === page.id);
+    const children =
+      page.kind === "database"
+        ? []
+        : pages.filter((c) => c.parentId === page.id);
     return (
       <div key={`${favorite ? "fav" : "tree"}-${page.id}`}>
         <div
-          className={`tree-row ${p.active === page.id ? "active" : ""}`}
+          className={`tree-row ${p.active === page.id ? (favorite ? "shortcut-current" : "active") : ""}`}
           style={{ paddingLeft: 8 + depth * 14 }}
           draggable
           onDragStart={(e) =>
@@ -52,28 +55,40 @@ export function Sidebar(p: Props) {
             if (id) p.onMove(id, page.id);
           }}
         >
-          <button
-            className="tree-toggle"
-            aria-label={`${expanded.has(page.id) ? "Collapse" : "Expand"} ${page.title}`}
-            onClick={() =>
-              setExpanded((s) => {
-                const v = new Set(s);
-                v.has(page.id) ? v.delete(page.id) : v.add(page.id);
-                return v;
-              })
-            }
-          >
-            {children.length ? (
-              expanded.has(page.id) ? (
-                <CaretDownIcon size={12} />
+          {children.length > 0 && !favorite ? (
+            <button
+              className="tree-toggle"
+              aria-expanded={expanded.has(page.id)}
+              aria-label={`${expanded.has(page.id) ? "Collapse" : "Expand"} ${page.title}`}
+              onClick={() =>
+                setExpanded((s) => {
+                  const v = new Set(s);
+                  v.has(page.id) ? v.delete(page.id) : v.add(page.id);
+                  return v;
+                })
+              }
+            >
+              {children.length ? (
+                expanded.has(page.id) ? (
+                  <CaretDownIcon size={12} />
+                ) : (
+                  <CaretRightIcon size={12} />
+                )
               ) : (
-                <CaretRightIcon size={12} />
-              )
-            ) : (
-              <span />
-            )}
-          </button>
-          <button className="tree-page" onClick={() => p.open(page.id)}>
+                <span />
+              )}
+            </button>
+          ) : (
+            <span className="tree-toggle" aria-hidden="true" />
+          )}
+          <button
+            className="tree-page"
+            aria-current={
+              !favorite && p.active === page.id ? "page" : undefined
+            }
+            title={page.title || "Untitled"}
+            onClick={() => p.open(page.id)}
+          >
             <PageIcon icon={page.icon} kind={page.kind} />
             <span>{page.title || "Untitled"}</span>
           </button>
@@ -112,9 +127,6 @@ export function Sidebar(p: Props) {
         <IconButton label="Close sidebar" onClick={p.onClose}>
           <CaretDoubleLeftIcon size={18} />
         </IconButton>
-        <IconButton label="New page" onClick={() => p.create()}>
-          <NotePencilIcon size={20} />
-        </IconButton>
       </div>
       <nav className="main-nav">
         <button onClick={p.onSearch}>
@@ -122,14 +134,23 @@ export function Sidebar(p: Props) {
           <span>Search</span>
           <kbd>⌘ K</kbd>
         </button>
-        <button onClick={() => p.open("home")}>
+        <button
+          className={p.active === WORKSPACE_HOME ? "active" : ""}
+          aria-current={p.active === WORKSPACE_HOME ? "page" : undefined}
+          onClick={() => p.open(WORKSPACE_HOME)}
+        >
           <HouseIcon size={20} />
           <span>Home</span>
+        </button>
+        <button className="sidebar-create" onClick={() => p.create()}>
+          <NotePencilIcon size={20} />
+          <span>New page</span>
         </button>
       </nav>
       <div className="sidebar-scroll">
         <button
           className="section-heading"
+          aria-expanded={section.favorites}
           onClick={() => setSection((s) => ({ ...s, favorites: !s.favorites }))}
         >
           Favorites
@@ -148,20 +169,14 @@ export function Sidebar(p: Props) {
         <div className="section-line">
           <button
             className="section-heading"
+            aria-expanded={section.private}
             onClick={() => setSection((s) => ({ ...s, private: !s.private }))}
           >
             Private
           </button>
-          <IconButton label="Add private page" onClick={() => p.create()}>
-            <PlusIcon size={14} />
-          </IconButton>
         </div>
         {section.private &&
           pages.filter((q) => !q.parentId).map((q) => render(q))}
-        <button className="sidebar-add" onClick={() => p.create()}>
-          <PlusIcon size={17} />
-          Add a page
-        </button>
         <div
           className="root-drop"
           onDragOver={(e) => e.preventDefault()}
@@ -186,9 +201,6 @@ export function Sidebar(p: Props) {
           <TrashIcon size={18} />
           Trash
         </button>
-        <div className="workspace-caption">
-          <StarIcon size={12} />A home for your ideas
-        </div>
       </div>
     </aside>
   );

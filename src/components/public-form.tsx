@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { type Property, type Value } from "@/lib/model";
+import { PageIcon } from "./page-icons";
 import { Field } from "./ui";
 export function PublicForm({
   id,
@@ -29,8 +30,8 @@ export function PublicForm({
       </header>
       <main className="form-page">
         {icon && (
-          <div className="page-emoji" style={{ fontSize: 48 }}>
-            {icon}
+          <div className="page-icon">
+            <PageIcon icon={icon} size={48} />
           </div>
         )}
         <h1>{title}</h1>

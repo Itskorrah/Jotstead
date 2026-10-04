@@ -169,8 +169,7 @@ export function createSeed(): Workspace {
       type: "multiSelect",
       options: ["Design", "Writing", "Personal"],
     },
-    { id: "effort", name: "Effort", type: "number" },
-    { id: "complete", name: "Complete", type: "checkbox" },
+    { id: "effort", name: "Effort (points)", type: "number" },
   ];
   db.views = [
     "table",
@@ -229,7 +228,6 @@ export function createSeed(): Workspace {
         ["Personal"],
       ][i],
       effort: i + 1,
-      complete: i > 3,
     };
     row.content = doc([
       p("Start with a small, clear next step."),

@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import {
+  useEditor,
+  useEditorState,
+  EditorContent,
+  type Editor,
+} from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -50,7 +55,7 @@ import {
   ArrowClockwiseIcon,
 } from "@phosphor-icons/react";
 import { Callout, Columns, Column, FileNode, PageLink } from "./extensions";
-import { IconButton, Modal, Field } from "@/components/ui";
+import { IconButton, Modal, Field, Menu } from "@/components/ui";
 import { safeUrl, type Doc } from "@/lib/model";
 export const editorExtensions = () => [
   StarterKit.configure({
@@ -124,6 +129,7 @@ export function PageEditor({
   readOnly?: boolean;
   onNavigate?: (id: string) => void;
 }) {
+  const lastContent = useRef(content);
   const change = useRef(onChange);
   change.current = onChange;
   const [slash, setSlash] = useState<{
@@ -251,6 +257,18 @@ export function PageEditor({
       } else setSlash(null);
     },
   });
+  const toolbar = useEditorState({
+    editor,
+    selector: ({ editor: e }) => ({
+      active: Object.fromEntries(
+        ["bold", "italic", "underline", "strike", "code", "highlight"].map(
+          (mark) => [mark, e?.isActive(mark) ?? false],
+        ),
+      ),
+      canUndo: e?.can().undo() ?? false,
+      canRedo: e?.can().redo() ?? false,
+    }),
+  });
   useEffect(() => {
     if (editor) {
       onReady?.(editor);
@@ -258,11 +276,13 @@ export function PageEditor({
   }, [editor, onReady]);
   useEffect(() => {
     if (
-      editor &&
-      JSON.stringify(editor.getJSON()) !== JSON.stringify(content)
-    ) {
+      !editor ||
+      JSON.stringify(lastContent.current) === JSON.stringify(content)
+    )
+      return;
+    lastContent.current = content;
+    if (JSON.stringify(editor.getJSON()) !== JSON.stringify(content))
       editor.commands.setContent(content, { emitUpdate: false });
-    }
   }, [content, editor]);
   const commands = useMemo<Command[]>(
     () => [
@@ -483,7 +503,7 @@ export function PageEditor({
     <IconButton
       key={label}
       label={label}
-      aria-pressed={editor.isActive(active)}
+      aria-pressed={toolbar?.active[active] ?? false}
       onMouseDown={(e) => e.preventDefault()}
       onClick={run}
     >
@@ -642,12 +662,21 @@ export function PageEditor({
                 <DotsSixVerticalIcon size={17} />
               </button>
               {blockMenu && (
-                <div className="menu block-menu">
-                  <button onClick={() => mutateBlock("up")}>
+                <Menu
+                  className="block-menu"
+                  onClose={() => setBlockMenu(false)}
+                >
+                  <button
+                    disabled={block.index === 0}
+                    onClick={() => mutateBlock("up")}
+                  >
                     <ArrowUpIcon size={16} />
                     Move up
                   </button>
-                  <button onClick={() => mutateBlock("down")}>
+                  <button
+                    disabled={block.index === editor.state.doc.childCount - 1}
+                    onClick={() => mutateBlock("down")}
+                  >
                     <ArrowDownIcon size={16} />
                     Move down
                   </button>
@@ -684,7 +713,7 @@ export function PageEditor({
                       {c.name}
                     </button>
                   ))}
-                </div>
+                </Menu>
               )}
             </div>
           )}
@@ -746,12 +775,14 @@ export function PageEditor({
             )}
             <IconButton
               label="Undo"
+              disabled={!toolbar?.canUndo}
               onClick={() => editor.chain().focus().undo().run()}
             >
               <ArrowCounterClockwiseIcon size={18} />
             </IconButton>
             <IconButton
               label="Redo"
+              disabled={!toolbar?.canRedo}
               onClick={() => editor.chain().focus().redo().run()}
             >
               <ArrowClockwiseIcon size={18} />

@@ -2410,7 +2410,7 @@ a.subtle {
     min-height: 66px;
   }
   .page-icon .page-emoji {
-    font-size: 54px !important;
+    font-size: 54px;
   }
   .page-title {
     font-size: 32px;

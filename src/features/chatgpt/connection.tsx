@@ -27,9 +27,11 @@ export async function connectChatGPT(sharing = false) {
 export function ChatGPTLogin({
   onLogin,
   draftExport,
+  notice,
 }: {
   onLogin: () => Promise<void>;
   draftExport?: () => void;
+  notice?: string;
 }) {
   const [status, setStatus] = useState<Status | null>(null),
     [error, setError] = useState(""),
@@ -54,6 +56,11 @@ export function ChatGPTLogin({
             Sign in with ChatGPT to open your personal workspace.
           </p>
         </header>
+        {notice && (
+          <p className="login-notice" role="status">
+            {notice}
+          </p>
+        )}
         <button
           className="chatgpt-button"
           disabled={busy || !!status?.legacyPassword}

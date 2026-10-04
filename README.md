@@ -17,9 +17,9 @@ pnpm dev
 
 Open **http://127.0.0.1:3000**. The development server binds only to loopback. The first run creates a sample workspace; after that all changes persist in `data/workspace.sqlite`. Uploads are in `data/uploads`. Neither data nor secrets are committed to Git.
 
-For the production PWA on this computer, run `pnpm build` then **`pnpm preview`**. This explicitly binds to loopback and enables local-only access. Use `pnpm start` with a password for a configured production deployment.
+For the production PWA on this computer, run `pnpm build` then **`pnpm preview`**. Open **http://127.0.0.1:3000** and choose **Continue with ChatGPT**. No separate Jotstead signup is needed. First verified sign-in backs up the workspace before binding it to your account. See [ChatGPT setup and plugin guide](docs/CHATGPT.md).
 
-To require a password locally, copy `.env.example` to `.env.local` and set `JOTSTEAD_PASSWORD`. Restart the server. Never reuse a password from another service. Production refuses anonymous private workspace access unless explicitly configured for a local-only preview.
+ChatGPT sign-in is the default in development and production. Existing password deployments remain supported until an owner is bound; afterward only the bound ChatGPT identity or an explicitly configured personal API token can authorize private access. `pnpm demo` explicitly enables an anonymous loopback demo only before account binding; never use that mode for remote hosting.
 
 ## What works
 
@@ -28,7 +28,7 @@ To require a password locally, copy `.env.example` to `.env.local` and set `JOTS
 - Database row pages with typed properties; saved table, board, gallery, list, calendar, milestone timeline, and count chart views. Shared filters, sorts, status grouping, relations, scoped formulas and rollups.
 - Server autosave, optimistic revision checks, retry IDs, IndexedDB drafts, explicit conflict recovery, page history, comments, JSON/Markdown/CSV export and basic imports.
 - Explicit public page publishing and database submission forms. Other pages, child pages, row values, and comments stay private. Publishing a page makes attachments used by that page accessible to readers until it is unpublished.
-- Single-owner password sessions, same-origin writes, filesystem uploads, optional compatible AI provider, authenticated workspace API, local MCP tools, and simple edit-triggered database rules.
+- Single-owner ChatGPT sessions, optional ChatGPT plan inference, selected-page context, shared project briefs, reviewed captures with source attribution, protected local MCP plugin, same-origin writes, filesystem uploads, optional compatible AI provider and database rules.
 
 See [feature coverage](docs/FEATURES.md) for exact boundaries. This is an independently implemented personal workspace, not full Notion parity. The visual baseline comes from official public Notion editor/database help screenshots; no private logged-in Notion workspace was available.
 
@@ -70,7 +70,7 @@ pnpm backup
 pnpm backup /path/to/new-backup-directory
 ```
 
-The command checkpoints SQLite and creates an independent SQLite snapshot plus a copy of uploads. **Pause writes during backup** to keep attachment uploads consistent with the snapshot. Keep backups on a different disk/location. Exported workspace JSON excludes attachment bytes and historical revisions; it is not a complete server backup.
+The command checkpoints SQLite and creates an independent SQLite snapshot plus a copy of uploads. OAuth credentials and the vault key are intentionally excluded. Preserve the original protected `auth.sqlite` and `auth.key` locally if restoring notes into the same bound workspace; a fresh data directory requires new account binding. **Pause writes during backup** to keep attachment uploads consistent with the snapshot. Keep backups on a different disk/location. Exported workspace JSON excludes attachment bytes and historical revisions; it is not a complete server backup.
 
 Restore: stop Jotstead, preserve the current data directory, copy the backup's `workspace.sqlite` and `uploads/` into a fresh data directory, point `JOTSTEAD_DATA_DIR` there, and restart. Do not copy old `-wal`/`-shm` files with the restored database. The included restore test opens a new store from a backup and verifies persisted pages and attachment bytes.
 
@@ -84,7 +84,7 @@ JOTSTEAD_AI_MODEL=llama3.2
 # JOTSTEAD_AI_KEY=your-provider-key-if-needed
 ```
 
-`JOTSTEAD_AI_URL` is an OpenAI-compatible `/v1` base URL. Ollama can provide it locally; another compatible provider can use its own URL/key/model. In Docker, localhost is the container: use an appropriate host or service address. AI requests send selected/retrieved page text to that configured provider. Workspace answers use lexical retrieval with source links; there is no semantic/vector search or file-content RAG. Responses can be reviewed and appended; AI never edits autonomously. Without configuration, the UI clearly reports that AI is disconnected. No real provider account/key was provisioned in this build.
+`JOTSTEAD_AI_URL` is an OpenAI-compatible `/v1` base URL. Ollama can provide it locally; another compatible provider can use its own URL/key/model. In Docker, localhost is the container: use an appropriate host or service address. AI requests send only the page context explicitly checked in the assistant. There is no semantic/vector search or file-content RAG. Responses can be reviewed and saved; AI never edits autonomously. ChatGPT plan inference is enabled separately through Settings, with discovered models and completion-aware streaming. No real provider login or API key was provisioned during validation.
 
 ## API and MCP
 
@@ -104,7 +104,7 @@ The local MCP server is **owner-level disk access for a trusted agent**, using t
 }
 ```
 
-Tools: `search_workspace`, `read_page`, `create_page`, `edit_page`, `trash_page`, `query_database`, `create_database_row`, `update_database_row`. Each mutation requires the latest revision. Page creation/editing accepts the documented basic Markdown subset. MCP does not serve the website or use the browser session/password; granting it access grants local read/write access to this data directory.
+Tools include page search/read/edit, database queries, `save_to_jotstead`, `read_project_brief`, `update_project_brief`, `create_tasks`, `preview_page` and the Project companion conversation panel. Enable the plugin in Settings → ChatGPT & integrations, select individual pages and separately allow writes. Each mutation requires the latest revision. Child pages and database rows need individual scopes; new child pages become readable only after selecting them. MCP uses trusted local process access, separate from the browser session. See [plugin installation](docs/CHATGPT.md#personal-plugin).
 
 ## Validation and development
 

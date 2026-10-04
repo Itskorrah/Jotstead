@@ -28,6 +28,7 @@ export function Settings({
   theme,
   setTheme,
   onInstall,
+  initialTab = "workspace",
 }: {
   workspace: Workspace;
   update: (fn: (w: Workspace) => void) => void;
@@ -37,8 +38,9 @@ export function Settings({
   theme: string;
   setTheme: (t: string) => void;
   onInstall: () => void;
+  initialTab?: string;
 }) {
-  const [tab, setTab] = useState("workspace");
+  const [tab, setTab] = useState(initialTab);
   return (
     <Modal wide title="Settings" onClose={onClose}>
       <div className="settings-layout">
@@ -170,7 +172,7 @@ export function Settings({
           {tab === "automations" && (
             <Rules workspace={workspace} update={update} />
           )}
-          {tab === "ai" && <ChatGPTConnection pages={workspace.pages}/>}
+          {tab === "ai" && <ChatGPTConnection pages={workspace.pages} />}
         </div>
       </div>
     </Modal>

@@ -10,3 +10,5 @@ backups/
 *.tsbuildinfo
 .DS_Store
 coverage/
+plugins/jotstead/server/dist/
+plugins/jotstead/ui/preview.html

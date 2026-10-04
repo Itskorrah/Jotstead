@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body {
+        font:
+          14px -apple-system,
+          BlinkMacSystemFont,
+          Segoe UI,
+          sans-serif;
+        color: light-dark(#37352f, #dededb);
+        background: light-dark(#fff, #191919);
+        margin: 0;
+        padding: 20px;
+        color-scheme: light dark;
+      }
+      header {
+        font-size: 12px;
+        color: #787774;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-size: 25px;
+        margin: 18px 0;
+      }
+      p {
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+      select,
+      button,
+      textarea {
+        font: inherit;
+        color: inherit;
+        background: transparent;
+        border: 1px solid #8886;
+        border-radius: 5px;
+        padding: 8px;
+        max-width: 100%;
+      }
+      select,
+      textarea {
+        width: 100%;
+      }
+      button {
+        cursor: pointer;
+        margin: 6px 8px 6px 0;
+      }
+      section {
+        border-top: 1px solid #8883;
+        margin-top: 20px;
+        padding-top: 12px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: #787774;
+        margin: 14px 0 6px;
+      }
+      #status {
+        font-size: 12px;
+        color: #787774;
+      }
+      #error {
+        color: #c84444;
+      }
+      textarea {
+        resize: vertical;
+      }
+      strong {
+        font-size: 12px;
+      }
+      ul {
+        padding-left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Jotstead · Project companion</header>
+    <select id="pages" aria-label="Selected Jotstead page">
+      <option>Connecting…</option>
+    </select>
+    <div id="status" role="status">Waiting for the host</div>
+    <div id="error" role="alert"></div>
+    <h1 id="title"></h1>
+    <p id="body"></p>
+    <section id="brief" hidden></section>
+    <section id="tasks" hidden></section>
+    <button id="refresh">Refresh page</button>
+    <section>
+      <h3>Save to Jotstead</h3>
+      <p>
+        Paste selected content from your conversation. This app does not read
+        your chat history.
+      </p>
+      <label for="capture">Selected answer, summary or decision</label
+      ><textarea id="capture" rows="5"></textarea
+      ><label for="source">Source chat URL (optional)</label
+      ><input
+        id="source"
+        type="url"
+        placeholder="https://chatgpt.com/c/…"
+        style="width: 100%; box-sizing: border-box; padding: 8px"
+      /><button id="save">Append to selected page</button>
+    </section>
+    <script>
+      /*JOTSTEAD_SCRIPT*/
+    </script>
+  </body>
+</html>

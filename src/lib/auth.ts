@@ -44,11 +44,23 @@ export function authorize(req: Request): boolean {
   if (vault.owner()) return vault.verifySession(session);
   const password = process.env.JOTSTEAD_PASSWORD;
   if (!password) {
-    return process.env.JOTSTEAD_LOCAL_ONLY === "1" && ["localhost", "127.0.0.1", "[::1]"].includes(new URL(req.url).hostname);
+    return (
+      process.env.JOTSTEAD_LOCAL_ONLY === "1" &&
+      ["localhost", "127.0.0.1", "[::1]"].includes(new URL(req.url).hostname)
+    );
   }
   return verifySession(session, password);
 }
-export function cookieValue(req: Request, name: string) { return req.headers.get("cookie")?.split(";").map(x => x.trim()).find(x => x.startsWith(name + "="))?.slice(name.length + 1) || ""; }
+export function cookieValue(req: Request, name: string) {
+  return (
+    req.headers
+      .get("cookie")
+      ?.split(";")
+      .map((x) => x.trim())
+      .find((x) => x.startsWith(name + "="))
+      ?.slice(name.length + 1) || ""
+  );
+}
 export function guard(req: Request, write = false): Response | null {
   if (!authorize(req))
     return Response.json(

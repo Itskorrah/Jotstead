@@ -35,7 +35,10 @@ import { Sidebar } from "./sidebar";
 import { Settings, ImportDialog } from "./settings";
 import { ChatGPTLogin } from "@/features/chatgpt/connection";
 import { AIAssistant } from "@/features/chatgpt/assistant";
-import { SharedBriefEditor, SaveSelection } from "@/features/chatgpt/shared-workflow";
+import {
+  SharedBriefEditor,
+  SaveSelection,
+} from "@/features/chatgpt/shared-workflow";
 import { saveSelection, type CaptureInput } from "@/lib/shared-context";
 import { Database } from "@/features/databases/database";
 import { PropertyCell } from "@/features/databases/property-cell";
@@ -226,7 +229,6 @@ export function WorkspaceApp() {
           if (Array.isArray(h)) setHistory(h);
         })
         .catch(() => notify("Could not load history"));
-
   }, [modal, page?.id, notify]);
   const updatePage = useCallback(
     (fn: (p: Page) => void) => {
@@ -321,7 +323,20 @@ export function WorkspaceApp() {
     show(null);
   };
   if (store.authRequired)
-    return <ChatGPTLogin onLogin={store.load} draftExport={workspace ? () => download("jotstead-unsaved-draft.json", workspaceExport(workspace)) : undefined}/>;
+    return (
+      <ChatGPTLogin
+        onLogin={store.load}
+        draftExport={
+          workspace
+            ? () =>
+                download(
+                  "jotstead-unsaved-draft.json",
+                  workspaceExport(workspace),
+                )
+            : undefined
+        }
+      />
+    );
   if (!workspace)
     return (
       <div className="loading-screen">
@@ -341,7 +356,9 @@ export function WorkspaceApp() {
     );
   const capture = (input: CaptureInput) => {
     let capturedId = "";
-    update(w => { capturedId = saveSelection(w, input).id; });
+    update((w) => {
+      capturedId = saveSelection(w, input).id;
+    });
     if (capturedId) open(capturedId);
     notify("Selection added. Jotstead will save it with your workspace.");
   };
@@ -397,7 +414,33 @@ export function WorkspaceApp() {
             }
           }}
         />
-        {p.sharedBrief && <details className="shared-brief-preview"><summary>Shared project brief</summary>{Object.entries(p.sharedBrief).filter(([key]) => key !== "sourceChatUrl").map(([key, value]) => <div key={key}><strong>{({ goals: "Goals", preferences: "Preferences", decisions: "Decisions", nextActions: "Next actions" } as Record<string,string>)[key]}</strong><p>{value || "Not set"}</p></div>)}<button className="subtle" onClick={() => show("brief")}>Edit brief</button></details>}
+        {p.sharedBrief && (
+          <details className="shared-brief-preview">
+            <summary>Shared project brief</summary>
+            {Object.entries(p.sharedBrief)
+              .filter(([key]) => key !== "sourceChatUrl")
+              .map(([key, value]) => (
+                <div key={key}>
+                  <strong>
+                    {
+                      (
+                        {
+                          goals: "Goals",
+                          preferences: "Preferences",
+                          decisions: "Decisions",
+                          nextActions: "Next actions",
+                        } as Record<string, string>
+                      )[key]
+                    }
+                  </strong>
+                  <p>{value || "Not set"}</p>
+                </div>
+              ))}
+            <button className="subtle" onClick={() => show("brief")}>
+              Edit brief
+            </button>
+          </details>
+        )}
         {parent?.kind === "database" && p.parentId === parent.id && (
           <div className="row-properties">
             {parent.properties.map((prop) => (
@@ -825,6 +868,31 @@ export function WorkspaceApp() {
               <div className="menu-label">
                 Edited {new Date(menuPage.updatedAt).toLocaleDateString()}
               </div>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("ai");
+                }}
+              >
+                <SparkleIcon size={17} />
+                Ask AI about this page
+              </button>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("brief");
+                }}
+              >
+                Shared project brief
+              </button>
+              <button
+                onClick={() => {
+                  open(menuPage.id);
+                  show("capture");
+                }}
+              >
+                Save from ChatGPT
+              </button>
             </Menu>
           </div>,
           document.querySelector("dialog[open]") || document.body,
@@ -877,8 +945,9 @@ export function WorkspaceApp() {
           </div>
         </Modal>
       )}
-      {modal === "settings" && (
+      {(modal === "settings" || modal === "connections") && (
         <Settings
+          initialTab={modal === "connections" ? "ai" : "workspace"}
           workspace={workspace}
           update={update}
           onClose={() => show(null)}
@@ -1520,9 +1589,35 @@ export function WorkspaceApp() {
           </div>
         </Modal>
       )}
-      {modal === "ai" && <AIAssistant pages={workspace.pages} pageId={page?.id} onSave={capture} onClose={() => show(null)} onSettings={() => show("settings")}/>}
-      {modal === "capture" && <SaveSelection pages={workspace.pages} pageId={page?.id} onSave={capture} onClose={() => show(null)}/>}
-      {modal === "brief" && page && <SharedBriefEditor key={page.id} page={page} onSave={brief => updatePage(p => { p.sharedBrief = brief; })} onClose={() => show(null)}/>}
+      {modal === "ai" && (
+        <AIAssistant
+          pages={workspace.pages}
+          pageId={page?.id}
+          onSave={capture}
+          onClose={() => show(null)}
+          onSettings={() => show("connections")}
+        />
+      )}
+      {modal === "capture" && (
+        <SaveSelection
+          pages={workspace.pages}
+          pageId={page?.id}
+          onSave={capture}
+          onClose={() => show(null)}
+        />
+      )}
+      {modal === "brief" && page && (
+        <SharedBriefEditor
+          key={page.id}
+          page={page}
+          onSave={(brief) =>
+            updatePage((p) => {
+              p.sharedBrief = brief;
+            })
+          }
+          onClose={() => show(null)}
+        />
+      )}
       {modal === "install" && (
         <Modal title="Install Jotstead" onClose={() => show(null)}>
           <img

@@ -1,6 +1,6 @@
 {
   "name": "jotstead",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "engines": {
     "node": ">=24.0.0"
@@ -11,15 +11,19 @@
     "build": "next build",
     "start": "node scripts/start.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "pnpm plugin:build && vitest run",
     "backup": "tsx scripts/backup.ts",
     "check": "pnpm test && pnpm typecheck && pnpm build && pnpm verify:http",
     "format": "prettier --write src tests scripts public/sw.js next.config.ts vitest.config.ts tsconfig.json package.json",
     "mcp": "tsx scripts/mcp.ts",
     "verify:http": "tsx scripts/verify-http.ts",
-    "preview": "node scripts/start.mjs --local"
+    "preview": "node scripts/start.mjs",
+    "plugin:build": "node scripts/build-plugin.mjs",
+    "plugin:install": "pnpm plugin:build && node scripts/install-plugin.mjs",
+    "demo": "node scripts/start.mjs --local"
   },
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^2.0.3",
     "@modelcontextprotocol/sdk": "1.32.0",
     "@phosphor-icons/react": "2.1.10",
     "@tiptap/core": "3.31.4",

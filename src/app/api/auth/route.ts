@@ -53,14 +53,14 @@ export async function DELETE(req: Request) {
       { status: 403 },
     );
   getVault().revokeSession(cookieValue(req, "jotstead_session"));
-  return Response.json(
-    { ok: true },
-    {
-      headers: {
-        "Set-Cookie":
-          "jotstead_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
-        "Clear-Site-Data": '"cache", "storage"',
-      },
-    },
+  const headers = new Headers({ "Clear-Site-Data": '"cache", "storage"' });
+  headers.append(
+    "Set-Cookie",
+    "jotstead_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
   );
+  headers.append(
+    "Set-Cookie",
+    "jotstead_oauth=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+  );
+  return Response.json({ ok: true }, { headers });
 }

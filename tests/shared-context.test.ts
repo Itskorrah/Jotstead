@@ -76,3 +76,23 @@ it("roundtrips a shared brief through workspace validation and refuses invalid p
     saveSelection(w, { mode: "create", parentId: "missing", markdown: "Plan" }),
   ).toThrow(/destination/i);
 });
+
+it.each(["create", "append"] as const)(
+  "preserves a leading captured heading in %s mode",
+  (mode) => {
+    const w = createSeed();
+    const result = saveSelection(w, {
+      mode,
+      pageId: w.pages[0].id,
+      title: "Chosen title",
+      markdown: "# Decision\nKeep the selected heading.",
+    });
+    const page = w.pages.find((p) => p.id === result.id)!;
+    expect(textOf(page.content)).toContain("Decision");
+    expect(page.content.content).toContainEqual({
+      type: "heading",
+      attrs: { level: 1 },
+      content: [{ type: "text", text: "Decision" }],
+    });
+  },
+);

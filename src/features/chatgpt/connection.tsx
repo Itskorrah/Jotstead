@@ -48,7 +48,7 @@ export function ChatGPTLogin({
       <p>Sign in with ChatGPT to open your personal workspace.</p>
       <button
         className="chatgpt-button"
-        disabled={busy}
+        disabled={busy || !!status?.legacyPassword}
         onClick={async () => {
           setError("");
           setBusy(true);
@@ -73,7 +73,13 @@ export function ChatGPTLogin({
         </p>
       )}
       {status?.legacyPassword && (
-        <details>
+        <p className="muted login-detail">
+          Open this workspace with its existing password first, then connect
+          ChatGPT in Settings.
+        </p>
+      )}
+      {status?.legacyPassword && (
+        <details open>
           <summary>Existing workspace password</summary>
           <form
             onSubmit={async (e) => {
@@ -181,6 +187,15 @@ export function ChatGPTConnection({ pages }: { pages: Page[] }) {
         about pages you select. Your AI allowance is shared with other connected
         apps.
       </p>
+      {status && !status.ownerBound && (
+        <button
+          className="chatgpt-button"
+          disabled={busy}
+          onClick={() => act(() => connectChatGPT(false))}
+        >
+          Connect ChatGPT for sign-in
+        </button>
+      )}
       <button
         className="chatgpt-button"
         disabled={busy}

@@ -1,4 +1,10 @@
-import { authorize, isSameOrigin, readJson } from "@/lib/auth";
+import {
+  authorize,
+  isSameOrigin,
+  readJson,
+  cookieValue,
+  verifySession,
+} from "@/lib/auth";
 import { startAuthorization } from "@/lib/chatgpt";
 import { getVault } from "@/lib/chatgpt-vault";
 import { getStore } from "@/lib/store";
@@ -34,10 +40,28 @@ export async function POST(req: Request) {
         { error: "Sign in before enabling AI usage" },
         { status: 401 },
       );
+    const vault = getVault();
+    const migrationSession =
+      !vault.owner() && process.env.JOTSTEAD_PASSWORD
+        ? cookieValue(req, "jotstead_session")
+        : undefined;
+    if (
+      !vault.owner() &&
+      process.env.JOTSTEAD_PASSWORD &&
+      !verifySession(migrationSession || "", process.env.JOTSTEAD_PASSWORD)
+    )
+      return Response.json(
+        {
+          error:
+            "Open your workspace with its existing password before connecting ChatGPT.",
+        },
+        { status: 401 },
+      );
     const result = startAuthorization(
-      getVault(),
+      vault,
       origin + "/auth/callback",
       sharing,
+      migrationSession,
     );
     return Response.json(
       { url: result.url },

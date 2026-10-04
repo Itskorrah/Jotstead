@@ -418,6 +418,7 @@ function validateDoc(input: unknown, depth = 0): Doc {
           if (
             ![
               "href",
+              "title",
               "target",
               "rel",
               "class",
@@ -429,6 +430,12 @@ function validateDoc(input: unknown, depth = 0): Doc {
             ].includes(k)
           )
             throw new Error("Unsupported mark attribute");
+          if (
+            k === "title" &&
+            v !== null &&
+            (typeof v !== "string" || v.length > 500)
+          )
+            throw new Error("Invalid link title");
           if (
             ["color", "backgroundColor"].includes(k) &&
             v &&

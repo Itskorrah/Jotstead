@@ -32,6 +32,8 @@ export type Attempt = {
   clientId: string;
   expiresAt: number;
   browserHash: string;
+  generation: number;
+  migrationSession?: string;
 };
 export type PluginPermissions = {
   enabled: boolean;
@@ -97,6 +99,34 @@ export function createVault(dir: string) {
   const owner = () => get<Identity>("owner");
   const credentials = () => get<Credentials>("credentials");
   const credentialVersion = () => get<number>("credential-version") || 0;
+  const authorizationGeneration = () =>
+    get<number>("authorization-generation") || 0;
+  const invalidateAttempts = () => {
+    put("authorization-generation", authorizationGeneration() + 1);
+    db.exec("DELETE FROM attempts");
+  };
+  const credentialSnapshot = () => {
+    // One SQLite statement gives credentials, generation and owner the same snapshot.
+    const rows = db
+      .prepare(
+        "SELECT id,value FROM vault WHERE id IN ('credentials','credential-version','owner')",
+      )
+      .all();
+    const values = new Map(
+      rows.map((row) => [String(row.id), String(row.value)]),
+    );
+    return {
+      tokens: values.has("credentials")
+        ? unseal<Credentials>(values.get("credentials")!)
+        : null,
+      version: values.has("credential-version")
+        ? unseal<number>(values.get("credential-version")!)
+        : 0,
+      owner: values.has("owner")
+        ? unseal<Identity>(values.get("owner")!)
+        : null,
+    };
+  };
   const sameOwner = (a: Identity, b: Identity) =>
     a.issuer === b.issuer && a.subject === b.subject;
   return {
@@ -104,6 +134,8 @@ export function createVault(dir: string) {
     owner,
     credentials,
     credentialVersion,
+    credentialSnapshot,
+    authorizationGeneration,
     registration: () => get<string>("registration"),
     saveRegistration: (id: string) => put("registration", id),
     plugin: (): PluginPermissions =>
@@ -114,13 +146,22 @@ export function createVault(dir: string) {
       },
     setPlugin: (value: PluginPermissions) => put("plugin", value),
     pending: (state: string, attempt: Attempt) => {
-      db.prepare(
-        "DELETE FROM attempts WHERE json_extract(body,'$.expiresAt')<?",
-      ).run(Date.now());
-      db.prepare("INSERT INTO attempts VALUES (?,?)").run(
-        hash(state),
-        JSON.stringify(attempt),
-      );
+      db.exec("BEGIN IMMEDIATE");
+      try {
+        if (attempt.generation !== authorizationGeneration())
+          throw new Error("Sign-in cancelled. Please try again.");
+        db.prepare(
+          "DELETE FROM attempts WHERE json_extract(body,'$.expiresAt')<?",
+        ).run(Date.now());
+        db.prepare("INSERT INTO attempts VALUES (?,?)").run(
+          hash(state),
+          JSON.stringify(attempt),
+        );
+        db.exec("COMMIT");
+      } catch (e) {
+        db.exec("ROLLBACK");
+        throw e;
+      }
     },
     consume: (state: string, browserToken: string): Attempt => {
       db.exec("BEGIN IMMEDIATE");
@@ -132,6 +173,7 @@ export function createVault(dir: string) {
         if (
           !a ||
           a.expiresAt < Date.now() ||
+          a.generation !== authorizationGeneration() ||
           a.browserHash !== hash(browserToken)
         )
           throw new Error(
@@ -145,9 +187,16 @@ export function createVault(dir: string) {
         throw e;
       }
     },
-    connect: (identity: Identity, tokens: Credentials, backup: () => void) => {
+    connect: (
+      identity: Identity,
+      tokens: Credentials,
+      backup: () => void,
+      generation = authorizationGeneration(),
+    ) => {
       db.exec("BEGIN IMMEDIATE");
       try {
+        if (generation !== authorizationGeneration())
+          throw new Error("Sign-in cancelled. Please start a fresh sign-in.");
         const existing = owner();
         if (existing && !sameOwner(existing, identity))
           throw new Error(
@@ -162,6 +211,7 @@ export function createVault(dir: string) {
         put("registration", identity.clientId);
         put("credentials", tokens);
         put("credential-version", credentialVersion() + 1);
+        invalidateAttempts();
         const session = randomBytes(32).toString("base64url");
         db.prepare("DELETE FROM sessions WHERE expires<?").run(Date.now());
         db.prepare("INSERT INTO sessions VALUES (?,?)").run(
@@ -180,13 +230,23 @@ export function createVault(dir: string) {
       !!db
         .prepare("SELECT 1 FROM sessions WHERE hash=? AND expires>?")
         .get(hash(token), Date.now()),
-    revokeSession: (token: string) =>
-      db.prepare("DELETE FROM sessions WHERE hash=?").run(hash(token)),
+    revokeSession: (token: string) => {
+      db.exec("BEGIN IMMEDIATE");
+      try {
+        db.prepare("DELETE FROM sessions WHERE hash=?").run(hash(token));
+        invalidateAttempts();
+        db.exec("COMMIT");
+      } catch (e) {
+        db.exec("ROLLBACK");
+        throw e;
+      }
+    },
     disconnect: () => {
       db.exec("BEGIN IMMEDIATE");
       try {
         db.prepare("DELETE FROM vault WHERE id='credentials'").run();
         put("credential-version", credentialVersion() + 1);
+        invalidateAttempts();
         db.exec("COMMIT");
       } catch (e) {
         db.exec("ROLLBACK");

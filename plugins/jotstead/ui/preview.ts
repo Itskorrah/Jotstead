@@ -12,7 +12,7 @@ type Data = {
   } | null;
 };
 const app = new App(
-  { name: "Jotstead project companion", version: "1.1.0" },
+  { name: "Jotstead project companion", version: "1.1.1" },
   {},
 );
 const element = <T extends HTMLElement>(id: string) =>

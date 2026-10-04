@@ -23,7 +23,7 @@ import {
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 declare const JOTSTEAD_PREVIEW_HTML: string;
-const server = new McpServer({ name: "jotstead", version: "1.1.0" });
+const server = new McpServer({ name: "jotstead", version: "1.1.1" });
 const permission = (write = false) => {
   const p = getVault().plugin();
   if (!p.enabled)

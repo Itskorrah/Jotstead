@@ -5,13 +5,13 @@ This release adds personal local ChatGPT sign-in, optional plan inference, selec
 ## First connection
 
 1. Run `pnpm install --frozen-lockfile`, `pnpm build`, then `pnpm preview` with Node 24+ and pnpm 11.19.0.
-2. Open **http://127.0.0.1:3000** and click **Continue with ChatGPT**. Complete the OpenAI browser login yourself. The initial request asks only for identity scopes.
+2. If this workspace already has a password, open it with that password first and use **Settings → ChatGPT & integrations → Connect ChatGPT for sign-in**. This migration proof is tied to the pending sign-in; an unauthenticated visitor cannot claim existing notes. Otherwise, open **http://127.0.0.1:3000** and click **Continue with ChatGPT**. Complete the OpenAI browser login yourself. The initial request asks only for identity scopes.
 3. The callback verifies OpenAI's ID-token signature, issuer, issued client audience, expiry and nonce. Before the first owner binding, it snapshots `data/workspace.sqlite` to `data/pre-chatgpt-backup/`. Existing uploads remain in place. A different verified identity cannot replace the owner.
 4. In **Settings → ChatGPT & integrations**, choose **Enable ChatGPT plan usage** and approve that additional permission if desired. Eligible plan access and provider availability are governed by OpenAI. No API key is created and no key payment is triggered as a fallback.
 
 The documented open-source flow uses dynamic client registration, a stable host identifier, PKCE and an HTTP loopback callback. Remote websites require a different registered deployment flow; the personal integration deliberately refuses a remote callback. [OpenAI registration and sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)
 
-A browser session lasts seven days and can be renewed by signing in again. AI tokens refresh independently with a cross-process lease and replacement-token checks. AI expiry or quota does not invalidate your note session. **Sign out on this device** revokes that local session and requests clearing browser storage. **Disconnect AI** stops using provider tokens immediately, attempts remote revocation and reports when it cannot confirm remote revocation. It preserves the owner/client mapping for a later sign-in. Plugin permissions are separate controls. [OpenAI session and credential guidance](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions)
+A browser session lasts seven days and can be renewed by signing in again. AI tokens refresh independently with a cross-process lease, atomic credential/version snapshots and replacement-token checks. Disconnect and sign-out invalidate pending authorizations across this personal workspace, including callbacks already exchanging a code. AI expiry or quota does not invalidate your note session. **Sign out on this device** revokes that local session and requests clearing browser storage. **Disconnect AI** stops using provider tokens immediately, attempts remote revocation and reports when it cannot confirm remote revocation. It preserves the owner/client mapping for a later sign-in. Plugin permissions are separate controls. [OpenAI session and credential guidance](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions)
 
 ## Writing and project context
 
@@ -21,7 +21,7 @@ ChatGPT inference uses the public Responses API with `store:false`, streamed out
 
 **Shared project brief** on a page stores goals, preferences, decisions, next actions and an optional real ChatGPT conversation/share URL. It stays editable, survives JSON export/import and participates in page history. Public page projections omit the brief. Jotstead AI includes it only when you select that page. The plugin reads it only when that page is allowed.
 
-**Save from ChatGPT** accepts pasted selected content, a destination and an optional source chat URL. It appends to a normal page or creates a visible page/row in a database; it never hides a capture in a database's unused note body. Source attribution becomes a clickable document link. Content edits use the existing autosave/revision conflict system. The server capture API and plugin use current revisions and retry identifiers.
+**Save from ChatGPT** accepts pasted selected content, a destination and an optional source chat URL. It appends to a normal page or creates a visible page/row in a database; it never hides a capture in a database's unused note body. Selected headings are preserved. Source attribution becomes a clickable document link. Content edits use the existing autosave/revision conflict system. The server capture API and plugin use current revisions and retry identifiers.
 
 ## Personal plugin
 

@@ -1,6 +1,7 @@
 import { randomBytes, createHash } from "node:crypto";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { type Vault, type Credentials, browserHash } from "./chatgpt-vault";
+import { verifySession } from "./auth";
 const issuer = "https://auth.openai.com";
 const tokenEndpoint = `${issuer}/api/accounts/oauth/token`;
 const resource = "https://api.openai.com/v1";
@@ -9,6 +10,7 @@ export function startAuthorization(
   v: Vault,
   redirectUri: string,
   sharing: boolean,
+  migrationSession?: string,
 ) {
   const redirect = new URL(redirectUri);
   if (
@@ -24,6 +26,8 @@ export function startAuthorization(
   const clientId =
     v.owner()?.clientId || v.registration() || "dynamic_agent_client";
   v.pending(state, {
+    generation: v.authorizationGeneration(),
+    migrationSession,
     nonce,
     verifier,
     redirectUri,
@@ -114,6 +118,19 @@ export async function finishAuthorization(
     throw new Error(
       "ChatGPT registration was incomplete. Please sign in again.",
     );
+  const password = process.env.JOTSTEAD_PASSWORD;
+  if ((!v.owner() && password) || a.migrationSession) {
+    if (
+      !password ||
+      !a.migrationSession ||
+      !verifySession(a.migrationSession, password)
+    )
+      throw new Error(
+        "Workspace password migration authorization expired. Sign in again.",
+      );
+  }
+  if (a.generation !== v.authorizationGeneration())
+    throw new Error("Sign-in cancelled. Please try again.");
   // Retain registration even if a code expires. This is not authenticated ownership.
   if (!v.owner()) v.saveRegistration(clientId);
   const request = deps.request || fetch;
@@ -159,14 +176,18 @@ export async function finishAuthorization(
     },
     tokens,
     backup,
+    a.generation,
   );
 }
 export const sharingEnabled = (v: Vault) =>
   !!v.credentials()?.scope.split(" ").includes("chatgpt.tokens.use.direct");
 export async function accessToken(v: Vault): Promise<string> {
   for (let wait = 0; wait < 60; wait++) {
-    const tokens = v.credentials();
-    if (!tokens || !sharingEnabled(v))
+    const { tokens } = v.credentialSnapshot();
+    if (
+      !tokens ||
+      !tokens.scope.split(" ").includes("chatgpt.tokens.use.direct")
+    )
       throw new Error(
         "Enable ChatGPT plan usage in Settings before asking AI.",
       );
@@ -186,9 +207,13 @@ export async function accessToken(v: Vault): Promise<string> {
       continue;
     }
     try {
-      const current = v.credentials(),
-        version = v.credentialVersion();
-      if (!current?.refreshToken) throw new Error("ChatGPT was disconnected");
+      const { tokens: current, version, owner } = v.credentialSnapshot();
+      if (
+        !current?.refreshToken ||
+        !owner ||
+        !current.scope.split(" ").includes("chatgpt.tokens.use.direct")
+      )
+        throw new Error("ChatGPT was disconnected");
       if (current.expiresAt > Date.now() + 60000) return current.accessToken;
       const r = await fetch(tokenEndpoint, {
         method: "POST",
@@ -197,7 +222,7 @@ export async function accessToken(v: Vault): Promise<string> {
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: current.refreshToken,
-          client_id: v.owner()!.clientId,
+          client_id: owner.clientId,
           resource,
         }).toString(),
       });

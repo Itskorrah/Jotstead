@@ -38,7 +38,9 @@ export function saveSelection(
   newId?: string,
 ) {
   const capture = captureSchema.parse(input);
-  const imported = importMarkdown(capture.markdown, capture.title);
+  const imported = importMarkdown(capture.markdown, capture.title, {
+    extractTitle: false,
+  });
   if (capture.sourceChatUrl)
     imported.content.content = [
       ...(imported.content.content || []),

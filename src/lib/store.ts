@@ -131,6 +131,7 @@ export function createStore(file: string) {
     save,
     history,
     throttle,
+    hasMutation: (id: string) => !!db.prepare("SELECT 1 FROM mutations WHERE id=?").get(id),
     close: () => db.close(),
     backup: (target: string) => {
       db.exec("PRAGMA wal_checkpoint(TRUNCATE)");

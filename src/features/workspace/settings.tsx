@@ -39,15 +39,6 @@ export function Settings({
   onInstall: () => void;
 }) {
   const [tab, setTab] = useState("workspace");
-  const [ai, setAi] = useState<{ available: boolean; model: string } | null>(
-    null,
-  );
-  useEffect(() => {
-    fetch("/api/ai")
-      .then((r) => r.json())
-      .then(setAi)
-      .catch(() => {});
-  }, []);
   return (
     <Modal wide title="Settings" onClose={onClose}>
       <div className="settings-layout">

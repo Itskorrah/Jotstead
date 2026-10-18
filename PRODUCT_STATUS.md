@@ -22,7 +22,7 @@ Acceptance for this change: (1) existing data and history survive snapshot/resto
 ## Checks and evidence
 
 - **Executed here (isolated Node 22 Linux runtime):** TypeScript strict compile of the standalone backup script using locally available Node type declarations; passed.
-- **Executed here:** standalone smoke of backup/snapshot/revision/history, attachment equality, dry-run, restored SQLite data, existing-destination refusal, source-inside-target refusal, tampered upload rejection and symlink rejection; passed.
+- **Executed here:** `node --experimental-strip-types tests/backup-smoke.mjs` against disposable SQLite data: snapshot/revision/history, attachment equality, CLI verification, dry-run, restored data, existing-destination refusal, unsafe path aliases, tampered upload rejection and symlink rejection; **passed**. The exact two remotely committed implementation/smoke file blobs matched the locally executed copies.
 - **Added to repository:** `tests/backup-integrity.test.ts` for the permanent Vitest suite. This suite was **not run** in this environment.
 - **Blocked for full suite:** repository requires Node >=24, pnpm 11.19.0 and dependency installation. The isolated runner only provides Node 22 and cannot resolve github.com/registry hosts for cloning or installation. Do not claim `pnpm test`, `pnpm typecheck`, `pnpm build`, `pnpm verify:http`, a full browser walkthrough, or GitHub Actions as passing in this run.
 - Prior project screenshots and validation reports remain in `docs/`; they are not new evidence.

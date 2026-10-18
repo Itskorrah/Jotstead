@@ -118,6 +118,9 @@ Tools include page search/read/edit, database queries, `save_to_jotstead`, `read
 
 ## Validation and development
 
+For a dependency-free backup/recovery smoke check on Node 24+ (using disposable test data only): `node --experimental-strip-types tests/backup-smoke.mjs`.
+
+
 ```bash
 pnpm test
 pnpm typecheck

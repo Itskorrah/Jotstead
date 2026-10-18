@@ -62,17 +62,27 @@ pnpm start
 
 This SQLite architecture requires persistent local disk and **one server instance**. It is not suited to ephemeral Vercel function storage or multiple replicas. Serverless deployment would require a persistent storage adapter. Production containers and physical iOS/Android installation have not been run on this machine; see the validation report.
 
-## Back up and restore
+## Verified backups and safe restore
+
+Keep an independent, encrypted copy of your data and **stop all writers** (web server, agents/MCP, uploads) before backing up. Jotstead stores notes, revisions and history in SQLite and attachment bytes separately; JSON exports are **not** complete server backups.
 
 ```bash
-pnpm backup
-# Or choose a new destination directory:
-pnpm backup /path/to/new-backup-directory
+# Create a snapshot with attachment checksums and a revision manifest:
+pnpm backup ./backups/my-backup
+
+# Check the snapshot, its history table and every saved file:
+pnpm backup --verify ./backups/my-backup
+
+# Check a recovery without touching destination data:
+pnpm backup --restore ./backups/my-backup ./data-recovered --dry-run
+
+# Only restore to a new, non-existing directory:
+pnpm backup --restore ./backups/my-backup ./data-recovered
 ```
 
-The command checkpoints SQLite and creates an independent SQLite snapshot plus a copy of uploads. OAuth credentials and the vault key are intentionally excluded. Preserve the original protected `auth.sqlite` and `auth.key` locally if restoring notes into the same bound workspace; a fresh data directory requires new account binding. **Pause writes during backup** to keep attachment uploads consistent with the snapshot. Keep backups on a different disk/location. Exported workspace JSON excludes attachment bytes and historical revisions; it is not a complete server backup.
+Backups include a SQLite snapshot and all uploaded files/metadata, with a SHA-256 manifest. The command rejects corrupted snapshots, changed files and unsafe paths, and never intentionally overwrites an existing backup or restore target. It does **not** coordinate write-freeze across running processes; pause writes to keep the SQLite snapshot aligned with uploads. Restore starts in a separate data directory; point `JOTSTEAD_DATA_DIR` at it only after verification. Auth/vault secrets are intentionally excluded and need separate protection. Older v1 backups require the older manual restore procedure.
 
-Restore: stop Jotstead, preserve the current data directory, copy the backup's `workspace.sqlite` and `uploads/` into a fresh data directory, point `JOTSTEAD_DATA_DIR` there, and restart. Do not copy old `-wal`/`-shm` files with the restored database. The included restore test opens a new store from a backup and verifies persisted pages and attachment bytes.
+See [backup, verification and recovery](docs/BACKUP_RECOVERY.md) for operational and security caveats, and [product readiness](PRODUCT_STATUS.md) for what has actually been tested, what is only implemented and what remains blocked.
 
 ## Optional AI
 
@@ -107,6 +117,9 @@ The local MCP server is **owner-level disk access for a trusted agent**, using t
 Tools include page search/read/edit, database queries, `save_to_jotstead`, `read_project_brief`, `update_project_brief`, `create_tasks`, `preview_page` and the Project companion conversation panel. Enable the plugin in Settings → ChatGPT & integrations, select individual pages and separately allow writes. Each mutation requires the latest revision. Child pages and database rows need individual scopes; new child pages become readable only after selecting them. MCP uses trusted local process access, separate from the browser session. See [plugin installation](docs/CHATGPT.md#personal-plugin).
 
 ## Validation and development
+
+For a dependency-free backup/recovery smoke check on Node 24+ (using disposable test data only): `node --experimental-strip-types tests/backup-smoke.mjs`.
+
 
 ```bash
 pnpm test

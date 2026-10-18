@@ -1,7 +1,7 @@
 /** Offline, independently verifiable Jotstead workspace backup and safe restore. */
 import { createHash, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { copyFile, lstat, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -94,6 +94,8 @@ export async function createBackup(sourceDir: string, targetDir: string): Promis
   try { await lstat(target); throw new Error("Backup destination already exists"); }
   catch (e) { if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e; }
   await mkdir(parent, { recursive: true });
+  if (inside(await realpath(source), await realpath(parent)))
+    throw new Error("Backup parent resolves inside the live data directory");
   const staging = join(parent, `.${basename(target)}.partial-${randomUUID()}`);
   await mkdir(staging, { mode: 0o700 });
   try {
@@ -136,10 +138,12 @@ export async function restoreBackup(backupDir: string, destinationDir: string, d
   const backup = resolve(backupDir), dest = resolve(destinationDir);
   if (inside(backup, dest) || inside(dest, backup)) throw new Error("Restore destination must be separate from backup");
   const manifest = await verifyBackup(backup);
-  if (dryRun) return manifest;
   try { await lstat(dest); throw new Error("Restore destination already exists: use a fresh path"); }
   catch (e) { if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e; }
+  if (dryRun) return manifest;
   await mkdir(dirname(dest), { recursive: true });
+  if (inside(await realpath(backup), await realpath(dirname(dest))))
+    throw new Error("Restore parent resolves inside the backup directory");
   const staging = join(dirname(dest), `.${basename(dest)}.partial-${randomUUID()}`);
   await mkdir(staging, { mode: 0o700 });
   try {

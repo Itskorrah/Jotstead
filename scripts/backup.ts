@@ -30,6 +30,8 @@ async function uploadNames(root: string): Promise<string[]> {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw error;
   }
+  const info = await lstat(uploads);
+  if (!info.isDirectory() || info.isSymbolicLink()) throw new Error("Uploads path is not a directory");
   const names = list.map((item) => `uploads/${item.name}`).sort();
   for (const name of names) {
     if (!safePath(name)) throw new Error(`Unexpected upload filename: ${name}`);
@@ -107,7 +109,8 @@ export async function createBackup(sourceDir: string, targetDir: string): Promis
       await copyFile(join(source, name), join(staging, name), constants.COPYFILE_EXCL);
     }
     const files = [SQLITE, ...names];
-    const entries = await Promise.all(files.map((path) => fileEntry(staging, path)));
+    const entries: Entry[] = [];
+    for (const path of files) entries.push(await fileEntry(staging, path));
     // Fail closed if a live save or attachment write occurred while copying.
     if ((await snapshotInfo(join(source, SQLITE))) !== revision) throw new Error("Workspace changed during backup; pause writes and retry");
     const liveUploads = await uploadNames(source);
